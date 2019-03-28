@@ -24,6 +24,13 @@ namespace VideoconferencingBackend.Repositories
 
         public async Task<User> Create(User item)
         {
+            Role role = await _db.Roles.FirstOrDefaultAsync(el => el.Name == "user");
+            if (role == null)
+            {
+                role = new Role {Name = "user"};
+                _db.Roles.Add(role);
+            }
+            item.Role = role;
             await _db.Users.AddAsync(item);
             await _db.SaveChangesAsync();
             return item;
@@ -57,7 +64,6 @@ namespace VideoconferencingBackend.Repositories
             user.Name = item.Name ?? user.Name;
             user.HandleId = item.HandleId ?? user.HandleId;
             user.SessionId = item.SessionId ?? user.SessionId;
-            user.ImageLink = item.ImageLink ?? user.ImageLink;
             user.Password = item.Password ?? user.Password;
             user.Surname = item.Surname ?? user.Surname;
             _db.Users.Update(user);
