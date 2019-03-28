@@ -1,17 +1,22 @@
 ﻿using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
+using VideoconferencingBackend.Interfaces;
 using VideoconferencingBackend.Models;
+using VideoconferencingBackend.Services;
 
 namespace VideoconferencingBackend.Utils
 {
@@ -84,6 +89,28 @@ namespace VideoconferencingBackend.Utils
                     policy.RequireRole("admin", "operator", "test"));
                 options.AddPolicy("admin", policy => policy.RequireRole("admin"));
             });
+        }
+
+        public static void AddJwtAuth(this IServiceCollection services, IConfiguration config)
+        {
+            services.AddScoped<ICustomAuthenticationService, TokenAuthenticationService>();
+            services.AddScoped<ITokenGeneratorService, JwtTokenGenerator>();
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.RequireHttpsMetadata = false;
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,//debuggy
+                        ValidIssuer = config["Issuer"],
+                        ValidateAudience = false,//debuggy
+                        //ValidAudience = Configuration["Origin"],
+                        ValidateLifetime = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(config["TokenSalt"])),
+                        ValidateIssuerSigningKey = true,
+                    };
+                });
+            services.AddAuthorization(options => options.AddPolicy("admin", policy => policy.RequireRole("admin")));
         }
 
         public static IServiceCollection ConnectToDb(this IServiceCollection services, string connectionString)
