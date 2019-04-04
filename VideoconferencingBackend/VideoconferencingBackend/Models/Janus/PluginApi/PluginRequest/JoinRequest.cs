@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace VideoconferencingBackend.Models.PluginApi.PluginRequest
+﻿namespace VideoconferencingBackend.Models.Janus.PluginApi.PluginRequest
 {
     public class JoinRequest : PluginBase<JoinBody>
     {
@@ -12,5 +7,7 @@ namespace VideoconferencingBackend.Models.PluginApi.PluginRequest
     public class JoinBody : PluginBodyBase
     {
         public override string Request => "join";
+        public string Ptype => "publisher";
+        public string Display { get; set; }
     }
 }

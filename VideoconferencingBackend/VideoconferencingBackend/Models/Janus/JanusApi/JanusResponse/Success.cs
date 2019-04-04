@@ -1,9 +1,9 @@
-﻿namespace VideoconferencingBackend.Models.JanusApi.JanusResponse
+﻿namespace VideoconferencingBackend.Models.Janus.JanusApi.JanusResponse
 {
     public class SuccessJanus : JanusBase
     {
         public SuccessJanusData Data { get; set; }
-
+        public long SessionId { get; set; }
         public SuccessJanus()
         {
             Data = new SuccessJanusData();

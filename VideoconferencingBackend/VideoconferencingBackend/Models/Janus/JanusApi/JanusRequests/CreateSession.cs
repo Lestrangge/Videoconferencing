@@ -1,4 +1,4 @@
-﻿namespace VideoconferencingBackend.Models.JanusApi.JanusRequests
+﻿namespace VideoconferencingBackend.Models.Janus.JanusApi.JanusRequests
 {
     public class CreateSession : JanusBase
     {
