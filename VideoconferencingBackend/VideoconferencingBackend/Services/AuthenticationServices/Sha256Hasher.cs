@@ -1,8 +1,8 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
-using VideoconferencingBackend.Interfaces;
+using VideoconferencingBackend.Interfaces.Services.Authentication;
 
-namespace VideoconferencingBackend.Services
+namespace VideoconferencingBackend.Services.AuthenticationServices
 {
     public class Sha256Hasher : IHasherService
     {
