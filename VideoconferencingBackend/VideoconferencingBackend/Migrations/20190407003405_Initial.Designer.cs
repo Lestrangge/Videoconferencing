@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using VideoconferencingBackend.Models;
@@ -9,9 +10,10 @@ using VideoconferencingBackend.Models;
 namespace VideoconferencingBackend.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20190407003405_Initial")]
+    partial class Initial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -56,7 +58,7 @@ namespace VideoconferencingBackend.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("GroupUsers");
+                    b.ToTable("GroupsAndUsers");
                 });
 
             modelBuilder.Entity("VideoconferencingBackend.Models.DBModels.Role", b =>
