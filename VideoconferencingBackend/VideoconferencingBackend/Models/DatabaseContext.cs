@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using VideoconferencingBackend.Models.DBModels;
 
 namespace VideoconferencingBackend.Models
@@ -15,7 +11,23 @@ namespace VideoconferencingBackend.Models
 
         }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<GroupUser>()
+                .HasKey(groupUser => new { groupUser.GroupId, groupUser.UserId });
+            modelBuilder.Entity<GroupUser>()
+                .HasOne(groupUser => groupUser.Group)
+                .WithMany(@group => @group.GroupUsers)
+                .HasForeignKey(groupUser => groupUser.GroupId);
+            modelBuilder.Entity<GroupUser>()
+                .HasOne(groupUser => groupUser.User)
+                .WithMany(user => user.GroupUsers)
+                .HasForeignKey(groupUser => groupUser.UserId);
+        }
+
         public DbSet<User> Users { get; set; }
         public DbSet<Role> Roles { get; set; }
+        public DbSet<Group> Groups { get; set; }
+        public DbSet<GroupUser> GroupUsers { get; set; }
     }
 }
