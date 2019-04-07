@@ -47,9 +47,10 @@ namespace VideoconferencingBackend
             services.AddSingleton<IHasherService, Sha256Hasher>();
             services.AddSingleton<IJanusApiService, JanusApiMockService>();
             services.AddMvc();
+            services.AddAnyCors();
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new Info { Title = "My API", Version = "v1" });
+                c.SwaggerDoc("v1", new Info { Title = "Videoconferencing API", Version = "v1" });
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);
@@ -63,13 +64,14 @@ namespace VideoconferencingBackend
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                app.UseSwagger();
+                app.UseSwaggerUI(c =>
+                {
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Videoconferencing api V1");
+                });
             }
-            app.UseSwagger();
+            app.UseCors("SiteCorsPolicy");
 
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Videoconferencing api V1");
-            });
             app.UseAuthentication();
             app.UseSignalR(routes => { routes.MapHub<JanusMessagesHub>("/signalr"); });
             app.UseMvc();
