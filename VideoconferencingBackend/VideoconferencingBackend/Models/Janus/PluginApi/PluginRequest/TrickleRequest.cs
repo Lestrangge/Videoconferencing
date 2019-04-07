@@ -3,7 +3,7 @@
     public class TrickleRequest : JanusBase
     {
         public override string Janus => "trickle";
-        public TrickleCandidate Candidate 
+        public TrickleCandidate Candidate { get; set; }
     }
 
     public class TrickleCandidate
