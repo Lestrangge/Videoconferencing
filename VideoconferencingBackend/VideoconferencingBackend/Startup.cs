@@ -15,10 +15,16 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.Swagger;
-using VideoconferencingBackend.Interfaces;
-using VideoconferencingBackend.Models.DBModels;
+using System;
+using System.IO;
+using System.Reflection;
+using VideoconferencingBackend.Hubs;
+using VideoconferencingBackend.Interfaces.Repositories;
+using VideoconferencingBackend.Interfaces.Services.Authentication;
+using VideoconferencingBackend.Interfaces.Services.Janus;
 using VideoconferencingBackend.Repositories;
-using VideoconferencingBackend.Services;
+using VideoconferencingBackend.Services.AuthenticationServices;
+using VideoconferencingBackend.Services.JanusIntegration;
 using VideoconferencingBackend.Utils;
 
 namespace VideoconferencingBackend
@@ -30,16 +36,16 @@ namespace VideoconferencingBackend
             Configuration = configuration;
         }
 
-        public IConfiguration Configuration { get; }
+        private IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.ConnectToDb(Configuration["Local"]);
-            services.AddScoped<IRepository<User>, UsersRepository>();
+            services.ConnectToDb(Configuration["ConnectionString"]);
+            services.AddJwtAuth(Configuration);
             services.AddScoped<IUsersRepository, UsersRepository>();
             services.AddSingleton<IHasherService, Sha256Hasher>();
-            services.AddJwtAuth(Configuration);
+            services.AddSingleton<IJanusApiService, JanusApiMockService>();
             services.AddMvc();
             services.AddSwaggerGen(c =>
             {
@@ -48,6 +54,7 @@ namespace VideoconferencingBackend
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);
             });
+            services.AddSnakeCaseSignalR(Configuration);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -64,6 +71,7 @@ namespace VideoconferencingBackend
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Videoconferencing api V1");
             });
             app.UseAuthentication();
+            app.UseSignalR(routes => { routes.MapHub<JanusMessagesHub>("/signalr"); });
             app.UseMvc();
         }
     }

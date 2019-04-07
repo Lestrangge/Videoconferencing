@@ -7,16 +7,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json.Serialization;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using VideoconferencingBackend.Interfaces;
+using VideoconferencingBackend.Interfaces.Services.Authentication;
 using VideoconferencingBackend.Models;
-using VideoconferencingBackend.Services;
+using VideoconferencingBackend.Services.AuthenticationServices;
 
 namespace VideoconferencingBackend.Utils
 {
@@ -108,6 +104,21 @@ namespace VideoconferencingBackend.Utils
                         ValidateLifetime = true,
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(config["TokenSalt"])),
                         ValidateIssuerSigningKey = true,
+                    };
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            var accessToken = context.Request.Query["access_token"];
+
+                            var path = context.HttpContext.Request.Path;
+                            if (!string.IsNullOrEmpty(accessToken) &&
+                                (path.StartsWithSegments("/signalr")))
+                            {
+                                context.Token = accessToken;
+                            }
+                            return Task.CompletedTask;
+                        }
                     };
                 });
             services.AddAuthorization(options => options.AddPolicy("admin", policy => policy.RequireRole("admin")));
