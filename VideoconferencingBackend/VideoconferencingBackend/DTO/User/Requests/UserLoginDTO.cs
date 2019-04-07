@@ -1,13 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace VideoconferencingBackend.DTO
+namespace VideoconferencingBackend.DTO.User.Requests
 {
-    public class UserSignupDTO
+    public class UserLoginDto
     {
         [Required]
         public string Login { get; set; }
+
         public string Password { get; set; }
-        public string Name { get; set; }
-        public string Surname { get; set; }
+
     }
 }

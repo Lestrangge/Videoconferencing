@@ -1,14 +1,15 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using VideoconferencingBackend.Interfaces;
+using VideoconferencingBackend.Interfaces.Repositories;
 using VideoconferencingBackend.Models;
 using VideoconferencingBackend.Models.DBModels;
 
 namespace VideoconferencingBackend.Repositories
 {
-    public class UsersRepository : IRepository<User>
+    public class UsersRepository : IUsersRepository
     {
         private readonly DatabaseContext _db;
 
@@ -17,14 +18,16 @@ namespace VideoconferencingBackend.Repositories
             _db = db;
         }
 
+        ///<inheritdoc/>
         public async Task<IEnumerable<User>> All()
         {
             return await _db.Users.Include(x => x.Role).ToListAsync();
         }
 
+        ///<inheritdoc/>
         public async Task<User> Create(User item)
         {
-            Role role = await _db.Roles.FirstOrDefaultAsync(el => el.Name == "user");
+            var role = await _db.Roles.FirstOrDefaultAsync(el => el.Name == "user");
             if (role == null)
             {
                 role = new Role {Name = "user"};
@@ -36,6 +39,7 @@ namespace VideoconferencingBackend.Repositories
             return item;
         }
 
+        ///<inheritdoc/>
         public Task<User> Delete(User item)
         {
             throw new NotImplementedException();
@@ -46,29 +50,50 @@ namespace VideoconferencingBackend.Repositories
             _db.Dispose();
         }
 
+        ///<inheritdoc/>
         public Task<User> Get(int id)
         {
-            return _db.Users.FirstOrDefaultAsync(x => x.Id == id);
+            return _db.Users.Where(x => x.Id == id)
+                .Include(user => user.Role)
+                .FirstOrDefaultAsync();
         }
 
+        ///<inheritdoc/>
         public Task<User> Get(string login)
         {
-            return _db.Users.FirstOrDefaultAsync(x => x.Login == login);
+            return _db.Users.Where(x => x.Login == login)
+                .Include(user => user.Role)
+                .FirstOrDefaultAsync();
         }
 
+        ///<inheritdoc/>
         public async Task<User> Update(User item)
         {
             var user = await Get(item.Login);
             if (user == null)
-                return user;
+                throw new KeyNotFoundException("No user found with such name");
             user.Name = item.Name ?? user.Name;
             user.HandleId = item.HandleId ?? user.HandleId;
             user.SessionId = item.SessionId ?? user.SessionId;
             user.Password = item.Password ?? user.Password;
             user.Surname = item.Surname ?? user.Surname;
+            user.AvatarLink = item.AvatarLink ?? user.AvatarLink;
+            user.ConnectionId = item.ConnectionId ?? user.ConnectionId;
             _db.Users.Update(user);
             await _db.SaveChangesAsync();
             return user;
         }
+
+        ///<inheritdoc/>
+        public async Task<IEnumerable<User>> Find(string name, int page, int pageSize)
+        {
+            return await _db.Users
+                .Include(el => el.Role)
+                .Where(el => el.Login.Contains(name))
+                .Skip((page) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        }
+
     }
 }

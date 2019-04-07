@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace VideoconferencingBackend.Models.DBModels
+﻿namespace VideoconferencingBackend.Models.DBModels
 {
     public class Role
     {
