@@ -37,6 +37,7 @@ namespace VideoconferencingBackend
         {
             services.ConnectToDb(Configuration["Local"]);
             services.AddScoped<IRepository<User>, UsersRepository>();
+            services.AddScoped<IUsersRepository, UsersRepository>();
             services.AddSingleton<IHasherService, Sha256Hasher>();
             services.AddJwtAuth(Configuration);
             services.AddMvc();

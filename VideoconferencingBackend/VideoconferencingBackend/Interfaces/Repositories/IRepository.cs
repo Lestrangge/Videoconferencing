@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
-namespace VideoconferencingBackend.Interfaces
+namespace VideoconferencingBackend.Interfaces.Repositories
 {
     public interface IRepository<T> : IDisposable where T : class 
     {
@@ -40,5 +39,13 @@ namespace VideoconferencingBackend.Interfaces
         /// <param name="item">Item to update</param>
         /// <returns>Updated entity</returns>
         Task<T> Update(T item);
+        /// <summary>
+        /// Returns pageSize of T objects in db found by name
+        /// </summary>
+        /// <param name="name">name to search for</param>
+        /// <param name="page">page number</param>
+        /// <param name="pageSize">page size</param>
+        /// <returns></returns>
+        Task<IEnumerable<T>> Find(string name, int page, int pageSize);
     }
 }
