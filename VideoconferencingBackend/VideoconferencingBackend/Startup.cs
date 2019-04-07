@@ -1,19 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.Swagger;
 using System;
 using System.IO;
@@ -44,6 +32,7 @@ namespace VideoconferencingBackend
             services.ConnectToDb(Configuration["ConnectionString"]);
             services.AddJwtAuth(Configuration);
             services.AddScoped<IUsersRepository, UsersRepository>();
+            services.AddScoped<IGroupsRepository, GroupsRepository>();
             services.AddSingleton<IHasherService, Sha256Hasher>();
             services.AddSingleton<IJanusApiService, JanusApiMockService>();
             services.AddMvc();
