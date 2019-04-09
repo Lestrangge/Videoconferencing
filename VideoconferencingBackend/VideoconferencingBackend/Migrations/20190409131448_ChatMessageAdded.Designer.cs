@@ -10,8 +10,8 @@ using VideoconferencingBackend.Models;
 namespace VideoconferencingBackend.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20190407013623_Add")]
-    partial class Add
+    [Migration("20190409131448_ChatMessageAdded")]
+    partial class ChatMessageAdded
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

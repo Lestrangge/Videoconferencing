@@ -3,7 +3,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace VideoconferencingBackend.Migrations
 {
-    public partial class Initial : Migration
+    public partial class ChatMessageAdded : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -71,7 +71,7 @@ namespace VideoconferencingBackend.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "GroupsAndUsers",
+                name: "GroupUsers",
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false),
@@ -80,15 +80,15 @@ namespace VideoconferencingBackend.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GroupsAndUsers", x => new { x.GroupId, x.UserId });
+                    table.PrimaryKey("PK_GroupUsers", x => new { x.GroupId, x.UserId });
                     table.ForeignKey(
-                        name: "FK_GroupsAndUsers_Groups_GroupId",
+                        name: "FK_GroupUsers_Groups_GroupId",
                         column: x => x.GroupId,
                         principalTable: "Groups",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_GroupsAndUsers_Users_UserId",
+                        name: "FK_GroupUsers_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
@@ -101,8 +101,8 @@ namespace VideoconferencingBackend.Migrations
                 column: "CreatorId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GroupsAndUsers_UserId",
-                table: "GroupsAndUsers",
+                name: "IX_GroupUsers_UserId",
+                table: "GroupUsers",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
@@ -114,7 +114,7 @@ namespace VideoconferencingBackend.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "GroupsAndUsers");
+                name: "GroupUsers");
 
             migrationBuilder.DropTable(
                 name: "Groups");

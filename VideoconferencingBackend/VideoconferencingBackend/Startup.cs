@@ -8,11 +8,11 @@ using System.IO;
 using System.Reflection;
 using VideoconferencingBackend.Hubs;
 using VideoconferencingBackend.Interfaces.Repositories;
+using VideoconferencingBackend.Interfaces.Services;
 using VideoconferencingBackend.Interfaces.Services.Authentication;
-using VideoconferencingBackend.Interfaces.Services.Janus;
 using VideoconferencingBackend.Repositories;
+using VideoconferencingBackend.Services;
 using VideoconferencingBackend.Services.AuthenticationServices;
-using VideoconferencingBackend.Services.JanusIntegration;
 using VideoconferencingBackend.Utils;
 
 namespace VideoconferencingBackend
@@ -31,10 +31,13 @@ namespace VideoconferencingBackend
         {
             services.ConnectToDb(Configuration["ConnectionString"]);
             services.AddJwtAuth(Configuration);
+
             services.AddScoped<IUsersRepository, UsersRepository>();
             services.AddScoped<IGroupsRepository, GroupsRepository>();
+            services.AddScoped<IMessagesRepository, MessagesRepository>();
+            services.AddScoped<IChatService, ChatService>();
+
             services.AddSingleton<IHasherService, Sha256Hasher>();
-            services.AddSingleton<IJanusApiService, JanusApiMockService>();
             services.AddMvc();
             services.AddAnyCors();
             services.AddSwaggerGen(c =>

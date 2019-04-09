@@ -29,5 +29,6 @@ namespace VideoconferencingBackend.Models
         public DbSet<Role> Roles { get; set; }
         public DbSet<Group> Groups { get; set; }
         public DbSet<GroupUser> GroupUsers { get; set; }
+        public DbSet<Message> Messages { get; set; }
     }
 }

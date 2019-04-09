@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using VideoconferencingBackend.Interfaces.Repositories;
 using VideoconferencingBackend.Models;
 using VideoconferencingBackend.Models.DBModels;
+using VideoconferencingBackend.Utils;
 
 namespace VideoconferencingBackend.Repositories
 {
@@ -31,7 +32,7 @@ namespace VideoconferencingBackend.Repositories
             if (role == null)
             {
                 role = new Role {Name = "user"};
-                _db.Roles.Add(role);
+                await _db.Roles.AddAsync(role);
             }
             item.Role = role;
             await _db.Users.AddAsync(item);
@@ -85,13 +86,12 @@ namespace VideoconferencingBackend.Repositories
         }
 
         ///<inheritdoc/>
-        public async Task<IEnumerable<User>> Find(string name, int page, int pageSize)
+        public async Task<IEnumerable<User>> Find(string name, int? page = null, int? pageSize = null)
         {
             return await _db.Users
                 .Include(el => el.Role)
                 .Where(el => el.Login.Contains(name))
-                .Skip((page) * pageSize)
-                .Take(pageSize)
+                .Paginate(page, pageSize)
                 .ToListAsync();
         }
 

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using VideoconferencingBackend.Interfaces.Repositories;
 using VideoconferencingBackend.Models;
 using VideoconferencingBackend.Models.DBModels;
+using VideoconferencingBackend.Utils;
 
 namespace VideoconferencingBackend.Repositories
 {
@@ -66,22 +67,20 @@ namespace VideoconferencingBackend.Repositories
         }
 
         ///<inheritdoc/>
-        public async Task<IEnumerable<Group>> Find(string name, int page, int pageSize)
+        public async Task<IEnumerable<Group>> Find(string name, int? page = null, int? pageSize = null)
         {
             return await _db.Groups
                 .Where(el => el.Name.Contains(name))
-                .Skip(page * pageSize)
-                .Take(pageSize)
+                .Paginate(page, pageSize)
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Group>> GetCreatedGroups(string name, int page, int pageSize)
+        public async Task<IEnumerable<Group>> GetCreatedGroups(string name, int? page = null, int? pageSize = null)
         {
             return await _db.Groups
                 .Include(group => group.Creator)
                 .Where(group => group.Creator.Login == name)
-                .Skip(page * pageSize)
-                .Take(pageSize)
+                .Paginate(page, pageSize)
                 .ToListAsync();
         }
 
@@ -105,26 +104,32 @@ namespace VideoconferencingBackend.Repositories
             return await Create(item);
         }
 
-        public async Task<IEnumerable<Group>> GetUsersGroups(string userLogin, int page, int pageSize)
+        public async Task<IEnumerable<Group>> GetUsersGroups(string userLogin, int? page = null, int? pageSize = null)
         {
             var user = await _db.Users.Where(item => item.Login == userLogin).FirstOrDefaultAsync();
             return await _db.GroupUsers.Where(groupUser => groupUser.User == user)
                 .Include(groupUser => groupUser.Group)
                 .Select(groupUser => groupUser.Group)
-                .Skip(page * pageSize)
-                .Take(pageSize)
+                .Paginate(page, pageSize)
+                .AsNoTracking()
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<User>> GetGroupUsers(string groupName, int page, int pageSize)
+        public async Task<int> GetUsersGroupsLength(string userLogin)
+        {
+            var user = await _db.Users.Where(item => item.Login == userLogin).FirstOrDefaultAsync();
+            return _db.GroupUsers.Count(groupUser => groupUser.User == user);
+        }
+
+        public async Task<IEnumerable<User>> GetGroupUsers(string groupName, int? page = null, int? pageSize = null)
         {
             var group = await _db.Groups.Where(group1 => group1.Name == groupName).FirstOrDefaultAsync();
             return await _db.GroupUsers.Where(groupUser => groupUser.Group == group)
                 .Include(groupUser => groupUser.User)
                 .Select(groupUser => groupUser.User)
-                .Skip(page * pageSize)
-                .Take(pageSize)
+                .Paginate(page, pageSize)
                 .ToListAsync();
         }
     }
+
 }

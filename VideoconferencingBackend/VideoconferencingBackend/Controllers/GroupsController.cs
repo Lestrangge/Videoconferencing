@@ -25,24 +25,51 @@ namespace VideoconferencingBackend.Controllers
             _pageSize = int.Parse(config["GroupsFindPageSize"]);
         }
 
+
+        /// <summary>
+        /// Returns enumerable of groups containing pattern. 
+        /// </summary>
+        /// <param name="pattern">pattern contained in group name</param>
+        /// <param name="page">optional: page number (base 0)</param>
+        /// <param name="pageSize">optional: page size (base 10)</param>
+        /// <returns>Enumerable of matching groups</returns>
+        /// <response code="200">Array of matching groups</response>
+        /// <response code="401">Unauthorized</response>
         [HttpGet]
+        [Authorize]
         [Route("find")]
-        public async Task<IActionResult> FindGroups(string name, int? page, int? pageSize)
+        public async Task<IActionResult> FindGroups(string pattern, int? page, int? pageSize)
         {
-            return new OkObjectResult((await _groupsRepository.Find(name, page ?? 0, pageSize ?? _pageSize))
-                .Select(group => new GroupFoundDto(group)));
+            return new OkObjectResult(new {Groups = (await _groupsRepository.Find(pattern, page ?? 0, pageSize ?? _pageSize))
+                .Select(group => new GroupFoundDto(group))});
         }
 
+        /// <summary>
+        /// Enumerable of groups, created by user
+        /// </summary>
+        /// <param name="page">optional: page number (base 0)</param>
+        /// <param name="pageSize">optional: page size (base 10)</param>
+        /// <returns>Enumerable of groups, created by user</returns>
+        /// <response code="200">Enumerable of matching groups</response>
+        /// <response code="401">Unauthorized</response>
         [HttpGet]
         [Authorize]
         [Route("created")]
         public async Task<IActionResult> GetCreatedGroups(int? page, int? pageSize)
         {
             var me = HttpContext.User.Identity.Name;
-            return new OkObjectResult((await _groupsRepository.GetCreatedGroups(me, page??0, pageSize ?? _pageSize))
-                .Select(group=> new GroupFoundDto(group)));
+            return new OkObjectResult(new {Groups = (await _groupsRepository.GetCreatedGroups(me, page ?? 0, pageSize ?? _pageSize))
+                .Select(group => new GroupFoundDto(group))});
         }
 
+        /// <summary>
+        /// Join the group, specified by group name
+        /// </summary>
+        /// <param name="groupName">Name of the group to join</param>
+        /// <returns>Joined group</returns>
+        /// <response code="200">Joined group</response>
+        /// <response code="400">Group not found</response>
+        /// <response code="401">Unauthorized</response>
         [HttpPost]
         [Authorize]
         [Route("join")]
@@ -58,26 +85,50 @@ namespace VideoconferencingBackend.Controllers
                 return new BadRequestObjectResult(ex.Message);   
             }
         }
-
+        /// <summary>
+        /// Get users groups
+        /// </summary>
+        /// <param name="page">optional: page number (base 0)</param>
+        /// <param name="pageSize">optional: page size (base 10)</param>
+        /// <returns>Enumerable of joined groups</returns>
+        /// <response code="200">Enumerable of joined groups</response>
+        /// <response code="401">Unauthorized</response>
         [HttpGet]
         [Authorize]
         [Route("joined")]
         public async Task<IActionResult> GetJoinedGroups(int? page, int? pageSize)
         {
             var me = HttpContext.User.Identity.Name;
-            return new OkObjectResult((await _groupsRepository.GetUsersGroups(me, page ?? 0, pageSize ?? _pageSize))
-                .Select(group => new GroupFoundDto(group)));
+            return new OkObjectResult(new {Groups = (await _groupsRepository.GetUsersGroups(me, page ?? 0, pageSize ?? _pageSize))
+                .Select(group => new GroupFoundDto(group))});
         }
 
+        /// <summary>
+        /// Get group participants
+        /// </summary>
+        /// <param name="groupName">name of the group to find participants</param>
+        /// <param name="pageSize">optional: page size (base 10)</param>
+        /// <param name="page"></param>
+        /// <returns></returns>
+        /// <response code="200">Enumerable of participants of the group</response>
+        /// <response code="401">Unauthorized</response>
         [HttpGet]
         [Authorize]
         [Route("participants")]
         public async Task<IActionResult> GetGroupParticipants(string groupName, int? page, int? pageSize)
-        {
-            return new OkObjectResult((await _groupsRepository.GetGroupUsers(groupName, page ?? 0, pageSize ?? _pageSize))
-                .Select(user => new UserFoundDto(user)));
+        {   
+            return new OkObjectResult(new {Users = (await _groupsRepository.GetGroupUsers(groupName, page ?? 0, pageSize ?? _pageSize))
+                .Select(user => new UserFoundDto(user))});
         }
 
+        /// <summary>
+        /// Create a group
+        /// </summary>
+        /// <param name="group">group to create</param>
+        /// <returns>Created group</returns>
+        /// <response code="200">Created group</response>
+        /// <response code="400">Group name is taken</response>
+        /// <response code="401">Unauthorized</response>
         [HttpPost]
         [Authorize]
         [Route("create")]

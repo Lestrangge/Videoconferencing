@@ -59,6 +59,30 @@ namespace VideoconferencingBackend.Migrations
                     b.ToTable("GroupUsers");
                 });
 
+            modelBuilder.Entity("VideoconferencingBackend.Models.DBModels.Message", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<int>("GroupId");
+
+                    b.Property<int?>("SenderId");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(4096);
+
+                    b.Property<DateTime>("Time");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GroupId");
+
+                    b.HasIndex("SenderId");
+
+                    b.ToTable("Messages");
+                });
+
             modelBuilder.Entity("VideoconferencingBackend.Models.DBModels.Role", b =>
                 {
                     b.Property<int>("Id")
@@ -121,6 +145,18 @@ namespace VideoconferencingBackend.Migrations
                         .WithMany("GroupUsers")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("VideoconferencingBackend.Models.DBModels.Message", b =>
+                {
+                    b.HasOne("VideoconferencingBackend.Models.DBModels.Group", "Group")
+                        .WithMany()
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("VideoconferencingBackend.Models.DBModels.User", "Sender")
+                        .WithMany()
+                        .HasForeignKey("SenderId");
                 });
 
             modelBuilder.Entity("VideoconferencingBackend.Models.DBModels.User", b =>
