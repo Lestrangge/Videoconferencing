@@ -23,11 +23,11 @@ namespace VideoconferencingBackend.Repositories
             _db.Dispose();
         }
 
-        public async Task<IEnumerable<Message>> GetMessagesFromGroup(string groupName, int? page = null, int? pageSize = null)
+        public async Task<IEnumerable<Message>> GetMessagesFromGroup(string groupGuid, int? page = null, int? pageSize = null)
         {
             return await _db.Messages
                 .Include(message => message.Group)
-                .Where(message => message.Group.Name == groupName)
+                .Where(message => message.Group.GroupGuid== groupGuid)
                 .Include(message => message.Sender)
                 .OrderByDescending(message => message.Time)
                 .Paginate(page, pageSize)

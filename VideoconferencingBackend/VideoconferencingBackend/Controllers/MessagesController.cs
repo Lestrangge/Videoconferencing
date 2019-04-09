@@ -22,10 +22,11 @@ namespace VideoconferencingBackend.Controllers
         }
 
         [Authorize]
+        [HttpGet]
         [Route("get_by_group")]
-        public async Task<IActionResult> GetGroupMessages(string groupName, int? page, int? pageNumber)
+        public async Task<IActionResult> GetGroupMessages(string groupGuid, int? page, int? pageNumber)
         {
-             return new OkObjectResult(new {Messages = (await _messages.GetMessagesFromGroup(groupName, page ?? 0, pageNumber ?? _messagesOnPage))
+             return new OkObjectResult(new {Messages = (await _messages.GetMessagesFromGroup(groupGuid, page, pageNumber))
                  .Select(message => new GroupMessageDto(message))});
         }
     }

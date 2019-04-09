@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using VideoconferencingBackend.DTO.User.Requests;
 
 namespace VideoconferencingBackend.Models.DBModels
@@ -13,21 +14,31 @@ namespace VideoconferencingBackend.Models.DBModels
         public string Password { get; set; }
         public string Name { get; set; }
         public string Surname { get; set; }
+        public string UserGuid { get; set; }
         public long? SessionId { get; set; }
         public long? HandleId { get; set; }
         public Role Role { get; set; }
         public string AvatarLink { get; set; }
-
-        public static explicit operator User(UserLoginDto v)
-        {
-            return new User{Login = v.Login, Password = v.Password};
-        }
-
-        public static explicit operator User(UserSignupDto v)
-        {
-            return new User{Password = v.Password, Name = v.Name, Login = v.Login, Surname = v.Surname};
-        }
         public string ConnectionId { get; set; }
         public ICollection<GroupUser> GroupUsers { get; set; }
+
+        public User()
+        {
+
+        }
+
+        public User(UserLoginDto credentials)
+        {
+            Login = credentials.Login;
+            Password = credentials.Password;
+        }
+
+        public User(UserSignupDto credentials)
+        {
+            Name = credentials.Name;
+            Login = credentials.Login;
+            Surname = credentials.Surname;
+            Password = credentials.Password;
+        }
     }
 }

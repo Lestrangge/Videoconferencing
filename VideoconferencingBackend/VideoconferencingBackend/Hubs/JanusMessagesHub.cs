@@ -35,7 +35,7 @@ namespace VideoconferencingBackend.Hubs
             var me = Context.User.Identity.Name;
             var groups = await _groups.GetUsersGroups(me, 0, await _groups.GetUsersGroupsLength(me));
             foreach (var @group in groups)
-                await Groups.AddToGroupAsync(Context.ConnectionId, @group.Name);
+                await Groups.AddToGroupAsync(Context.ConnectionId, @group.GroupGuid);
             await base.OnConnectedAsync();
         }
 
@@ -44,7 +44,7 @@ namespace VideoconferencingBackend.Hubs
             var me = Context.User.Identity.Name;
             var groups = await _groups.GetUsersGroups(me, 0, await _groups.GetUsersGroupsLength(me));
             foreach (var @group in groups)
-                await Groups.RemoveFromGroupAsync(Context.ConnectionId, @group.Name);
+                await Groups.RemoveFromGroupAsync(Context.ConnectionId, @group.GroupGuid);
             await base.OnDisconnectedAsync(exception);
         }
 
@@ -55,20 +55,20 @@ namespace VideoconferencingBackend.Hubs
         }
 
         [Authorize]
-        public async Task<HubResponse> InitiateCall(string groupName)
+        public async Task<HubResponse> InitiateCall(string groupGuid)
         {
-            var jsep = await  _janus.InitiateCall(groupName);
-            await Clients.Group(groupName).SendAsync("CallStarted", groupName);
+            var jsep = await  _janus.InitiateCall(groupGuid);
+            await Clients.Group(groupGuid).SendAsync("CallStarted", groupGuid);
             return new HubSuccessResponse(jsep);
         }
 
         [Authorize]
-        public async Task<HubResponse> SendChatMessage(string groupName, string text)
-        {
-            var login = Context.User.Identity.Name;
+        public async Task<HubResponse> SendChatMessage(string groupGuid, string text)
+        {   
+            var userGuid = Context.User.Identity.Name;
             try
             {
-                var message = await _chats.SendMessage(text, groupName, login, Clients.Group(groupName));
+                var message = await _chats.SendMessage(text, groupGuid, userGuid, Clients.Group(groupGuid));
                 return new HubSuccessResponse(new GroupMessageDto(message));
             }
             catch (ArgumentException ex)

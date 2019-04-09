@@ -35,6 +35,7 @@ namespace VideoconferencingBackend.Repositories
                 await _db.Roles.AddAsync(role);
             }
             item.Role = role;
+            item.UserGuid = Guid.NewGuid().ToString();
             await _db.Users.AddAsync(item);
             await _db.SaveChangesAsync();
             return item;
@@ -60,7 +61,14 @@ namespace VideoconferencingBackend.Repositories
         }
 
         ///<inheritdoc/>
-        public Task<User> Get(string login)
+        public Task<User> Get(string userGuid)
+        {
+            return _db.Users.Where(x => x.UserGuid == userGuid)
+                .Include(user => user.Role)
+                .FirstOrDefaultAsync();
+        }
+
+        public Task<User> GetByLogin(string login)
         {
             return _db.Users.Where(x => x.Login == login)
                 .Include(user => user.Role)
@@ -70,7 +78,7 @@ namespace VideoconferencingBackend.Repositories
         ///<inheritdoc/>
         public async Task<User> Update(User item)
         {
-            var user = await Get(item.Login);
+            var user = await Get(item.UserGuid);
             if (user == null)
                 throw new KeyNotFoundException("No user found with such name");
             user.Name = item.Name ?? user.Name;

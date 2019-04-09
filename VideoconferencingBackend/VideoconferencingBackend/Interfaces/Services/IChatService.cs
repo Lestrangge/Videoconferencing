@@ -6,6 +6,6 @@ namespace VideoconferencingBackend.Interfaces.Services
 {
     public interface IChatService
     {
-        Task<Message> SendMessage(string message, string groupName, string senderLogin, IClientProxy group);
+        Task<Message> SendMessage(string message, string groupGuid, string userGuid, IClientProxy group);
     }
 }

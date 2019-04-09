@@ -42,7 +42,23 @@ namespace VideoconferencingBackend.Controllers
                 return new BadRequestObjectResult(ModelState.Values.Select(value => value.Errors.FirstOrDefault()).FirstOrDefault()?.ErrorMessage);
             try
             {
-                return new OkObjectResult(await _authentication.Signup((User) credentials));
+                return new OkObjectResult(await _authentication.Signup(new User(credentials)));
+            }
+            catch (ArgumentException ex)
+            {
+                return new BadRequestObjectResult(ex.Message);
+            }
+        }
+
+        [HttpGet]
+        [Authorize]
+        [Route("current")]
+        public async Task<IActionResult> CurrentUser()
+        {
+            var me = HttpContext.User.Identity.Name;
+            try
+            {
+                return new OkObjectResult(new UserFoundDto(await _usersRepository.Get(me)));
             }
             catch (ArgumentException ex)
             {
@@ -65,7 +81,7 @@ namespace VideoconferencingBackend.Controllers
                 return new BadRequestObjectResult(ModelState.Values.Select(value => value.Errors.FirstOrDefault()).FirstOrDefault()?.ErrorMessage);
             try
             {
-                return new OkObjectResult(await _authentication.Login((User) credentials));
+                return new OkObjectResult(await _authentication.Login(new User(credentials)));
             }
             catch (ArgumentException ex)
             {
@@ -99,7 +115,7 @@ namespace VideoconferencingBackend.Controllers
         [Route("find")]
         public async Task<IActionResult> Find(string pattern, int? pageSize, int? page)
         {
-            return new OkObjectResult(new {Users = (await _usersRepository.Find(pattern, page ?? 0, pageSize ?? _pageSize))
+            return new OkObjectResult(new {Users = (await _usersRepository.Find(pattern, page, pageSize))
                 .Select(user => new UserFoundDto(user))});  
         }
 

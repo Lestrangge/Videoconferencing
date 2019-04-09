@@ -23,6 +23,14 @@ namespace VideoconferencingBackend.Models
                 .HasOne(groupUser => groupUser.User)
                 .WithMany(user => user.GroupUsers)
                 .HasForeignKey(groupUser => groupUser.UserId);
+            modelBuilder.Entity<User>(entity => {
+                entity.HasIndex(e => e.UserGuid).IsUnique();
+                entity.HasIndex(e => e.Login).IsUnique();
+            });
+            modelBuilder.Entity<Group>(entity => {
+                entity.HasIndex(e => e.GroupGuid).IsUnique();
+                entity.HasIndex(e => e.Name).IsUnique();
+            });
         }
 
         public DbSet<User> Users { get; set; }

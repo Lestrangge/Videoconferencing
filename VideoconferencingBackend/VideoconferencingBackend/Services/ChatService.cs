@@ -21,18 +21,18 @@ namespace VideoconferencingBackend.Services
             _messages = messages;
         }
 
-        public async Task<Message> SendMessage(string text, string groupName, string senderLogin, IClientProxy clients)
+        public async Task<Message> SendMessage(string text, string groupGuid, string userGuid, IClientProxy clients)
         {
-            var sender = await _users.Get(senderLogin);
+            var sender = await _users.Get(userGuid);    
             if (sender == null)
                 throw new ArgumentException("Login not found");
 
-            var group = await _groups.Get(groupName);
+            var group = await _groups.Get(groupGuid);
             if (group == null)
                 throw new ArgumentException("Group not found");
 
-            var participants = await _groups.GetGroupUsers(groupName);
-            if (participants.Count(user => user.Login == senderLogin) < 1)
+            var participants = await _groups.GetGroupUsers(groupGuid);
+            if (participants.Count(user => user.UserGuid == sender.UserGuid) < 1)
                 throw new ArgumentException("User is not in a group");
 
             var message = new Message() { Group = group, Sender = sender, Text = text, Time = DateTime.Now};

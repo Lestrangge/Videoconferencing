@@ -3,6 +3,7 @@
     public class UserFoundDto
     {
         public string Login { get; set; }
+        public string UserGuid { get; set; }
         public string Name { get; set; }
         public string Surname { get; set; }
         public string AvatarLink { get; set; }
@@ -11,6 +12,7 @@
         {
             Login = user.Login;
             Name = user.Name;
+            UserGuid = user.UserGuid;
             Surname = user.Surname;
             AvatarLink = user.AvatarLink;
         }
