@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using NLog;
 using VideoconferencingBackend.DTO.Hub.ServerResponse;
-using VideoconferencingBackend.DTO.User.Responses;
+using VideoconferencingBackend.DTO.Message.Response;
 using VideoconferencingBackend.Interfaces.Repositories;
 using VideoconferencingBackend.Interfaces.Services;
 using VideoconferencingBackend.Interfaces.Services.Janus;
@@ -70,7 +69,7 @@ namespace VideoconferencingBackend.Hubs
             try
             {
                 var message = await _chats.SendMessage(text, groupName, login, Clients.Group(groupName));
-                return new HubSuccessResponse(new IncomingMessageDto(message));
+                return new HubSuccessResponse(new GroupMessageDto(message));
             }
             catch (ArgumentException ex)
             {

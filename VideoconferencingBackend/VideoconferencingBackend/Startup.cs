@@ -56,14 +56,14 @@ namespace VideoconferencingBackend
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseSwagger();
-                app.UseSwaggerUI(c =>
-                {
-                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Videoconferencing api V1");
-                });
-            }
-            app.UseCors("SiteCorsPolicy");
 
+            }
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Videoconferencing api V1");
+            });
+            app.UseCors("SiteCorsPolicy");
             app.UseAuthentication();
             app.UseSignalR(routes => { routes.MapHub<JanusMessagesHub>("/signalr"); });
             app.UseMvc();

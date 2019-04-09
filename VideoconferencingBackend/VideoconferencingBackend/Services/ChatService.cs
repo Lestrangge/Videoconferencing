@@ -2,8 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.VisualStudio.Web.CodeGeneration.EntityFrameworkCore;
-using VideoconferencingBackend.DTO.Hub.ServerResponse;
+using VideoconferencingBackend.DTO.Message.Response;
 using VideoconferencingBackend.Interfaces.Repositories;
 using VideoconferencingBackend.Interfaces.Services;
 using VideoconferencingBackend.Models.DBModels;
@@ -37,7 +36,7 @@ namespace VideoconferencingBackend.Services
                 throw new ArgumentException("User is not in a group");
 
             var message = new Message() { Group = group, Sender = sender, Text = text, Time = DateTime.Now};
-            var incoming = new IncomingMessageDto(message);
+            var incoming = new GroupMessageDto(message);
             await clients.SendAsync("IncomingMessage", incoming);
             return await _messages.Create(message);
         }
