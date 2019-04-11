@@ -4,5 +4,6 @@
     {
         public virtual string Janus { get; set; }
         public string Transaction { get; set; }
+        public long? SessionId { get; set; }
     }
 }

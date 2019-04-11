@@ -92,7 +92,7 @@ namespace VideoconferencingBackend.Services.JanusIntegration
         {
             if (!_ws.IsAlive)
                 await _ws.Connect();
-            await _ws.SendAsync(payload);
+            await _ws.Send(payload);
         }
     }
 }

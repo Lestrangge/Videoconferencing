@@ -4,5 +4,6 @@
     {
         public override string Janus => "message";
         public virtual T Body { get; set; }
+        public long? HandleId { get; set; }
     }
 }

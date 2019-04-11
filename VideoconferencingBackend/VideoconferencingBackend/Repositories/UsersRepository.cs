@@ -75,6 +75,11 @@ namespace VideoconferencingBackend.Repositories
                 .FirstOrDefaultAsync();
         }
 
+        public Task<User> GetBySessionId(long? responseSessionId)
+        {
+            return _db.Users.Where(user => user.SessionId == responseSessionId).FirstOrDefaultAsync();
+        }
+
         ///<inheritdoc/>
         public async Task<User> Update(User item)
         {
