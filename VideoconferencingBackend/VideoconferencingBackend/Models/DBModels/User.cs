@@ -17,7 +17,6 @@ namespace VideoconferencingBackend.Models.DBModels
         public string UserGuid { get; set; }
         public long? SessionId { get; set; }
         public long? HandleId { get; set; }
-        public Role Role { get; set; }
         public string AvatarLink { get; set; }
         public string ConnectionId { get; set; }
         public ICollection<GroupUser> GroupUsers { get; set; }

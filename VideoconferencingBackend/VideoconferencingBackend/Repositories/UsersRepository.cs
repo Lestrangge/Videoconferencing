@@ -22,19 +22,12 @@ namespace VideoconferencingBackend.Repositories
         ///<inheritdoc/>
         public async Task<IEnumerable<User>> All()
         {
-            return await _db.Users.Include(x => x.Role).ToListAsync();
+            return await _db.Users.ToListAsync();
         }
 
         ///<inheritdoc/>
         public async Task<User> Create(User item)
         {
-            var role = await _db.Roles.FirstOrDefaultAsync(el => el.Name == "user");
-            if (role == null)
-            {
-                role = new Role {Name = "user"};
-                await _db.Roles.AddAsync(role);
-            }
-            item.Role = role;
             item.UserGuid = Guid.NewGuid().ToString();
             await _db.Users.AddAsync(item);
             await _db.SaveChangesAsync();
@@ -56,7 +49,6 @@ namespace VideoconferencingBackend.Repositories
         public Task<User> Get(int id)
         {
             return _db.Users.Where(x => x.Id == id)
-                .Include(user => user.Role)
                 .FirstOrDefaultAsync();
         }
 
@@ -64,14 +56,12 @@ namespace VideoconferencingBackend.Repositories
         public Task<User> Get(string userGuid)
         {
             return _db.Users.Where(x => x.UserGuid == userGuid)
-                .Include(user => user.Role)
                 .FirstOrDefaultAsync();
         }
 
         public Task<User> GetByLogin(string login)
         {
             return _db.Users.Where(x => x.Login == login)
-                .Include(user => user.Role)
                 .FirstOrDefaultAsync();
         }
 
@@ -97,7 +87,6 @@ namespace VideoconferencingBackend.Repositories
         public async Task<IEnumerable<User>> Find(string name, int? page = null, int? pageSize = null)
         {
             return await _db.Users
-                .Include(el => el.Role)
                 .Where(el => el.Login.Contains(name))
                 .Paginate(page, pageSize)
                 .ToListAsync();

@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using NLog;
+using VideoconferencingBackend.DTO.Hub.ServerRequest;
 using VideoconferencingBackend.DTO.Hub.ServerResponse;
 using VideoconferencingBackend.DTO.Message.Response;
 using VideoconferencingBackend.Interfaces.Repositories;
@@ -55,10 +56,10 @@ namespace VideoconferencingBackend.Hubs
         }
 
         [Authorize]
-        public async Task<HubResponse> InitiateCall(string groupGuid)
+        public async Task<HubResponse> InitiateCall(InitiateCallRequestDto initiateCallRequest)    
         {
-            var jsep = await  _janus.InitiateCall(groupGuid);
-            await Clients.Group(groupGuid).SendAsync("CallStarted", groupGuid);
+            var jsep = await  _janus.InitiateCall(initiateCallRequest.GroupGuid);
+            await Clients.Group(initiateCallRequest.GroupGuid).SendAsync("CallStarted", initiateCallRequest.GroupGuid);
             return new HubSuccessResponse(jsep);
         }
 

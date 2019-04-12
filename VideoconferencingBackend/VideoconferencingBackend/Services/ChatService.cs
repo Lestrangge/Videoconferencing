@@ -36,9 +36,11 @@ namespace VideoconferencingBackend.Services
                 throw new ArgumentException("User is not in a group");
 
             var message = new Message() { Group = group, Sender = sender, Text = text, Time = DateTime.Now};
+            var m = await _messages.Create(message);
+
             var incoming = new GroupMessageDto(message);
             await clients.SendAsync("IncomingMessage", incoming);
-            return await _messages.Create(message);
+            return message;
         }
     }
 }

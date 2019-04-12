@@ -10,9 +10,11 @@ using VideoconferencingBackend.Hubs;
 using VideoconferencingBackend.Interfaces.Repositories;
 using VideoconferencingBackend.Interfaces.Services;
 using VideoconferencingBackend.Interfaces.Services.Authentication;
+using VideoconferencingBackend.Interfaces.Services.Janus;
 using VideoconferencingBackend.Repositories;
 using VideoconferencingBackend.Services;
 using VideoconferencingBackend.Services.AuthenticationServices;
+using VideoconferencingBackend.Services.JanusIntegration;
 using VideoconferencingBackend.Utils;
 
 namespace VideoconferencingBackend
@@ -38,6 +40,7 @@ namespace VideoconferencingBackend
             services.AddScoped<IChatService, ChatService>();
 
             services.AddSingleton<IHasherService, Sha256Hasher>();
+            services.AddSingleton<IJanusApiService, JanusApiService>();
             services.AddMvc();
             services.AddAnyCors();
             services.AddSwaggerGen(c =>
@@ -53,11 +56,8 @@ namespace VideoconferencingBackend
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-
-            }
+            if (env.IsDevelopment()){}
+            app.UseDeveloperExceptionPage();
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {

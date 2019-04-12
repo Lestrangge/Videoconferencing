@@ -85,6 +85,31 @@ namespace VideoconferencingBackend.Controllers
                 return new BadRequestObjectResult(ex.Message);   
             }
         }
+
+        /// <summary>
+        /// Join the group, specified by group name
+        /// </summary>
+        /// <param name="groupGuid">Guid of the group to join</param>
+        /// <param name="userGuid"></param>
+        /// <returns>Joined group</returns>
+        /// <response code="200">Joined group</response>
+        /// <response code="400">Group not found</response>
+        /// <response code="401">Unauthorized</response>
+        [HttpPost]
+        [Authorize]
+        [Route("invite")]
+        public async Task<IActionResult> InviteGroup([FromBody] GroupJoinDto joinRequest)
+        {
+            try
+            {
+                return new OkObjectResult(new GroupFoundDto(await _groupsRepository.AddToGroup(joinRequest.UserGuid, joinRequest.GroupGuid)));
+            }
+            catch (ArgumentException ex)
+            {
+                return new BadRequestObjectResult(ex.Message);
+            }
+        }
+
         /// <summary>
         /// Get users groups
         /// </summary>
@@ -141,6 +166,10 @@ namespace VideoconferencingBackend.Controllers
             try
             {
                 var gr = await _groupsRepository.CreateWithOwner(@group, HttpContext.User.Identity.Name);
+                foreach(string user in group.Users)
+                {
+                    await _groupsRepository.AddToGroup(user, gr.GroupGuid);
+                }
                 return new OkObjectResult(new GroupFoundDto(gr));
             }
             catch (ArgumentException ex)

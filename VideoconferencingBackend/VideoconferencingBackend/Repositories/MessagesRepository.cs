@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -27,7 +27,7 @@ namespace VideoconferencingBackend.Repositories
         {
             return await _db.Messages
                 .Include(message => message.Group)
-                .Where(message => message.Group.GroupGuid== groupGuid)
+                .Where(message => message.Group.GroupGuid == groupGuid)
                 .Include(message => message.Sender)
                 .OrderByDescending(message => message.Time)
                 .Paginate(page, pageSize)
@@ -51,6 +51,8 @@ namespace VideoconferencingBackend.Repositories
 
         public async Task<Message> Create(Message item)
         {
+            _db.Attach(item.Sender);
+            _db.Attach(item.Group);
             var created = await _db.Messages.AddAsync(item);
             await _db.SaveChangesAsync();
             return created.Entity;
