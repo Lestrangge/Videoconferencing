@@ -1,3 +1,4 @@
+using System;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
@@ -51,8 +52,15 @@ namespace VideoconferencingBackend.Repositories
 
         public async Task<Message> Create(Message item)
         {
-            _db.Attach(item.Sender);
-            _db.Attach(item.Group);
+            try
+            {
+                _db.Attach(item.Group);
+                _db.Attach(item.Sender);
+            }
+            catch (InvalidOperationException ex)
+            {
+
+            }
             var created = await _db.Messages.AddAsync(item);
             await _db.SaveChangesAsync();
             return created.Entity;
