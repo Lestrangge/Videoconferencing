@@ -7,6 +7,7 @@ namespace VideoconferencingBackend.Models.DBModels
     public class Group
     {
         public int Id { get; set; }
+        public string GroupGuid { get; set; }
         [Required]
         [StringLength(64, MinimumLength = 4, ErrorMessage = "Group name is in interval [4, 64]")]
         public string Name { get; set; }

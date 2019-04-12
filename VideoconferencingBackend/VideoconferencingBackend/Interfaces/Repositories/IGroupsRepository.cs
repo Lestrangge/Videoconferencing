@@ -6,10 +6,12 @@ namespace VideoconferencingBackend.Interfaces.Repositories
 {
     public interface IGroupsRepository : IRepository<Group>
     {
-        Task<IEnumerable<Group>> GetCreatedGroups(string name, int page, int pageSize);
-        Task<Group> CreateWithOwner(Group item, string ownerLogin);
-        Task<Group> AddToGroup(string userLogin, string groupName);
-        Task<IEnumerable<Group>> GetUsersGroups(string userLogin, int page, int pageSize);
-        Task<IEnumerable<User>> GetGroupUsers(string groupName, int page, int pageSize);
+        Task<IEnumerable<Group>> GetCreatedGroups(string userGuid, int? page = null, int? pageSize = null);
+        Task<Group> CreateWithOwner(Group item, string userGuid);
+        Task<Group> AddToGroup(string userGuid, string groupGuid);
+        Task<IEnumerable<Group>> GetUsersGroups(string userGuid, int? page = null, int? pageSize = null);
+        Task<int> GetUsersGroupsLength(string userGuid);
+        Task<IEnumerable<User>> GetGroupUsers(string groupGuid, int? page = null, int? pageSize = null);
+        Task<Group> GetByName(string name);
     }   
 }

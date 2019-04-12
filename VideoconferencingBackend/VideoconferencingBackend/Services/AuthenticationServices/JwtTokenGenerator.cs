@@ -39,8 +39,7 @@ namespace VideoconferencingBackend.Services.AuthenticationServices
         {
             var claims = new List<Claim>
             {
-                new Claim(ClaimsIdentity.DefaultNameClaimType, user.Login),
-                new Claim(ClaimsIdentity.DefaultRoleClaimType, user.Role.Name)
+                new Claim(ClaimsIdentity.DefaultNameClaimType, user.UserGuid),
             };
             var claimsIdentity =
                 new ClaimsIdentity(claims, "Token", ClaimsIdentity.DefaultNameClaimType,

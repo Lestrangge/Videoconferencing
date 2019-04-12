@@ -10,13 +10,11 @@ namespace VideoconferencingBackend.Interfaces.Adapters
         /// </summary>
         /// <param name="data">Message to be sent</param>
         /// <returns></returns>
-        Task SendAsync(string data);
-        /// <summary>
-        /// Sends a message via websocket interface synchronously
-        /// </summary>
-        /// <param name="data">Message to be sent</param>
-        /// <returns></returns>
-        void Send(string data);
-        
+        Task Send(string data);
+
+        void AddOnMessage(Action<string> messageAction);
+        void AddOnDisconnected(Action<string> disconnectedAction);
+        Task Connect();
+        bool IsAlive { get; }
     }
 }

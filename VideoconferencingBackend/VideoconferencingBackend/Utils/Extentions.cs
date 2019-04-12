@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication.Cookies;
+﻿using System.Linq;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Http;
@@ -128,6 +129,15 @@ namespace VideoconferencingBackend.Utils
         {
             return services.AddDbContext<DatabaseContext>(options => options.UseNpgsql(connectionString),
                 ServiceLifetime.Transient);
+        }
+
+        public static IQueryable<T> Paginate<T>(this IQueryable<T> query, int? page, int? pageSize)
+        {
+            if (page == null && pageSize != null)
+                return query.Take((int)pageSize);
+            if (page == null || pageSize == null)
+                return query;
+            return query.Skip((int)page * (int)pageSize).Take((int)pageSize);
         }
     }
 }

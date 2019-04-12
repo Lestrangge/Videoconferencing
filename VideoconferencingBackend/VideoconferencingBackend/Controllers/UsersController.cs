@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using VideoconferencingBackend.DTO.User.Requests;
 using VideoconferencingBackend.DTO.User.Responses;
 using VideoconferencingBackend.Interfaces.Repositories;
@@ -31,7 +32,7 @@ namespace VideoconferencingBackend.Controllers
         /// </summary>
         /// <param name="credentials">User to create</param>
         /// <returns>Jwt token</returns>
-        /// <response code="200">Returns JWT token</response>
+        /// <response code="200">JWT token</response>
         /// <response code="400">If the login is taken or password is weak</response>    
         [HttpPost]
         [Route("signup")]
@@ -41,7 +42,23 @@ namespace VideoconferencingBackend.Controllers
                 return new BadRequestObjectResult(ModelState.Values.Select(value => value.Errors.FirstOrDefault()).FirstOrDefault()?.ErrorMessage);
             try
             {
-                return new OkObjectResult(await _authentication.Signup((User) credentials));
+                return new OkObjectResult(await _authentication.Signup(new User(credentials)));
+            }
+            catch (ArgumentException ex)
+            {
+                return new BadRequestObjectResult(ex.Message);
+            }
+        }
+
+        [HttpGet]
+        [Authorize]
+        [Route("current")]
+        public async Task<IActionResult> CurrentUser()
+        {
+            var me = HttpContext.User.Identity.Name;
+            try
+            {
+                return new OkObjectResult(new UserFoundDto(await _usersRepository.Get(me)));
             }
             catch (ArgumentException ex)
             {
@@ -64,7 +81,7 @@ namespace VideoconferencingBackend.Controllers
                 return new BadRequestObjectResult(ModelState.Values.Select(value => value.Errors.FirstOrDefault()).FirstOrDefault()?.ErrorMessage);
             try
             {
-                return new OkObjectResult(await _authentication.Login((User) credentials));
+                return new OkObjectResult(await _authentication.Login(new User(credentials)));
             }
             catch (ArgumentException ex)
             {
@@ -72,19 +89,34 @@ namespace VideoconferencingBackend.Controllers
             }
         }
 
+        /// <summary>
+        /// TEST: returns users login
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
+        [Authorize]
         [Route("get_username")]
         public string Username()
         {
             return $"{HttpContext.User.Identity.Name}";
         }
 
+        /// <summary>
+        /// Returns enumerable of users, whose login contains pattern
+        /// </summary>
+        /// <param name="pattern">pattern contained in login</param>
+        /// <param name="page">optional: page number (base 0)</param>
+        /// <param name="pageSize">optional: page size (base 10)</param>
+        /// <returns>Enumerable of found users</returns>
+        /// <response code="200">Enumerable of found users</response>
+        /// <response code="401">Unauthorized</response>  
         [HttpGet]
+        [Authorize]
         [Route("find")]
-        public async Task<IActionResult> Find(string login, int? pageSize, int? page)
+        public async Task<IActionResult> Find(string pattern, int? pageSize, int? page)
         {
-            return new OkObjectResult((await _usersRepository.Find(login, page ?? 0, pageSize ?? _pageSize))
-                .Select(user=>new UserFoundDto(user)));
+            return new OkObjectResult(new {Users = (await _usersRepository.Find(pattern, page, pageSize))
+                .Select(user => new UserFoundDto(user))});  
         }
 
     }

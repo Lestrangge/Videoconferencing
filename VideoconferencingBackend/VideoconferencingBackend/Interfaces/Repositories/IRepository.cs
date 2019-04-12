@@ -46,6 +46,6 @@ namespace VideoconferencingBackend.Interfaces.Repositories
         /// <param name="page">page number</param>
         /// <param name="pageSize">page size</param>
         /// <returns></returns>
-        Task<IEnumerable<T>> Find(string name, int page, int pageSize);
+        Task<IEnumerable<T>> Find(string name, int? page = null, int? pageSize = null);
     }
 }

@@ -24,7 +24,7 @@ namespace VideoconferencingBackend.Services.AuthenticationServices
         }
         public async Task<string> Signup(User credentials)
         {
-            var user = await _users.Get(credentials.Login);
+            var user = await _users.GetByLogin(credentials.Login);
             if (user != null)
                 throw new ArgumentException("Login already taken");
             if (Zxcvbn.Zxcvbn.MatchPassword(credentials.Password).Score < int.Parse(_config["PasswordEnthropy"]))
@@ -38,7 +38,7 @@ namespace VideoconferencingBackend.Services.AuthenticationServices
 
         public async Task<string> Login(User credentials)
         {
-            var user = await _users.Get(credentials.Login);
+            var user = await _users.GetByLogin(credentials.Login);
             if(user == null)
                 throw new ArgumentException("User not found");
             if (user.Password != _hasher.Hash(credentials.Password))

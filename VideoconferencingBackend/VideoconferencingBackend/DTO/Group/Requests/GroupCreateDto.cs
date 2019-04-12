@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace VideoconferencingBackend.DTO.Group.Requests
 {
@@ -9,6 +10,6 @@ namespace VideoconferencingBackend.DTO.Group.Requests
         public string Name { get; set; }
         public string Description { get; set; }
         public string AvatarLink { get; set; }
-
+        public IEnumerable<string> Users { get; set; }
     }
 }

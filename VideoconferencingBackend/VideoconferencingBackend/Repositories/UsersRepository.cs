@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using VideoconferencingBackend.Interfaces.Repositories;
 using VideoconferencingBackend.Models;
 using VideoconferencingBackend.Models.DBModels;
+using VideoconferencingBackend.Utils;
 
 namespace VideoconferencingBackend.Repositories
 {
@@ -21,19 +22,13 @@ namespace VideoconferencingBackend.Repositories
         ///<inheritdoc/>
         public async Task<IEnumerable<User>> All()
         {
-            return await _db.Users.Include(x => x.Role).ToListAsync();
+            return await _db.Users.ToListAsync();
         }
 
         ///<inheritdoc/>
         public async Task<User> Create(User item)
         {
-            var role = await _db.Roles.FirstOrDefaultAsync(el => el.Name == "user");
-            if (role == null)
-            {
-                role = new Role {Name = "user"};
-                _db.Roles.Add(role);
-            }
-            item.Role = role;
+            item.UserGuid = Guid.NewGuid().ToString();
             await _db.Users.AddAsync(item);
             await _db.SaveChangesAsync();
             return item;
@@ -54,22 +49,31 @@ namespace VideoconferencingBackend.Repositories
         public Task<User> Get(int id)
         {
             return _db.Users.Where(x => x.Id == id)
-                .Include(user => user.Role)
                 .FirstOrDefaultAsync();
         }
 
         ///<inheritdoc/>
-        public Task<User> Get(string login)
+        public Task<User> Get(string userGuid)
+        {
+            return _db.Users.Where(x => x.UserGuid == userGuid)
+                .FirstOrDefaultAsync();
+        }
+
+        public Task<User> GetByLogin(string login)
         {
             return _db.Users.Where(x => x.Login == login)
-                .Include(user => user.Role)
                 .FirstOrDefaultAsync();
+        }
+
+        public Task<User> GetBySessionId(long? responseSessionId)
+        {
+            return _db.Users.Where(user => user.SessionId == responseSessionId).FirstOrDefaultAsync();
         }
 
         ///<inheritdoc/>
         public async Task<User> Update(User item)
         {
-            var user = await Get(item.Login);
+            var user = await Get(item.UserGuid);
             if (user == null)
                 throw new KeyNotFoundException("No user found with such name");
             user.Name = item.Name ?? user.Name;
@@ -85,13 +89,11 @@ namespace VideoconferencingBackend.Repositories
         }
 
         ///<inheritdoc/>
-        public async Task<IEnumerable<User>> Find(string name, int page, int pageSize)
+        public async Task<IEnumerable<User>> Find(string name, int? page = null, int? pageSize = null)
         {
             return await _db.Users
-                .Include(el => el.Role)
                 .Where(el => el.Login.Contains(name))
-                .Skip((page) * pageSize)
-                .Take(pageSize)
+                .Paginate(page, pageSize)
                 .ToListAsync();
         }
 

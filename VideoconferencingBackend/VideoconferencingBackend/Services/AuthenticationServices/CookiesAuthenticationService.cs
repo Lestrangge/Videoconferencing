@@ -26,7 +26,7 @@ namespace VideoconferencingBackend.Services.AuthenticationServices
 
         public async Task<string> Signup(User credentials)
         {
-            if (await _usersRepository.Get(credentials.Login) != null)
+            if (await _usersRepository.GetByLogin(credentials.Login) != null)
                 throw new ArgumentException("Login is already taken");
             if (Zxcvbn.Zxcvbn.MatchPassword(credentials.Password).Score < 2)
                 throw new ArgumentException("Password is weak");
@@ -40,7 +40,7 @@ namespace VideoconferencingBackend.Services.AuthenticationServices
 
         public async Task<string> Login(User credentials)
         {
-            var user = await _usersRepository.Get(credentials.Login);
+            var user = await _usersRepository.GetByLogin(credentials.Login);
             if (user == null)
                 throw new ArgumentException("User not found");
             if(user.Password != _hasher.Hash(credentials.Password))
@@ -53,8 +53,7 @@ namespace VideoconferencingBackend.Services.AuthenticationServices
         {
             var claims = new List<Claim>
             {
-                new Claim(ClaimsIdentity.DefaultNameClaimType, user.Login),
-                new Claim(ClaimsIdentity.DefaultRoleClaimType, user.Role.Name),
+                new Claim(ClaimsIdentity.DefaultNameClaimType, user.UserGuid),
             };
             var claimsIdentity = new ClaimsIdentity(claims, "ApplicationCookie", ClaimsIdentity.DefaultNameClaimType,
                 ClaimsIdentity.DefaultRoleClaimType);
