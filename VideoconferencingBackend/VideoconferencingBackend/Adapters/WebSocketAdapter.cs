@@ -11,8 +11,9 @@ namespace VideoconferencingBackend.Adapters
 {
     public class WebSocketAdapter : IWebSocketAdapter
     {
-
-        private readonly ClientWebSocket _ws;
+        private ClientWebSocket _ws;
+        private event Action<string> OnMessageReceived;
+        private event Action<string> OnDisconnected;
         private readonly ILogger _logger = LogManager.GetCurrentClassLogger();
         private readonly Uri _endpoint;
         public WebSocketAdapter(string endpoint)
@@ -20,46 +21,48 @@ namespace VideoconferencingBackend.Adapters
             _endpoint = new Uri(endpoint);
             _ws = new ClientWebSocket();
             _ws.Options.AddSubProtocol("janus-protocol");
-            OnMessageReceived += (message) => { _logger.Trace($"[WebSocket client] Message received: {message}"); };
-            OnDisconnected += (reason) => { _logger.Trace($"[WebSocket client] Disconnected: {reason}"); };
+            OnMessageReceived += (message) => { _logger.Trace($"[Native WebSocket client] Message received: {message}"); };
+            OnDisconnected += (reason) => { _logger.Trace($"[Native WebSocket client] Disconnected: {reason}"); };
         }
-
-        private event Action<string> OnMessageReceived;
-        private event Action<string> OnDisconnected;
-
 
         public void Dispose()
         {
             _ws.Dispose();
         }
 
-        public Task SendAsync(string data)
-        {
-            return _ws.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes(data)), WebSocketMessageType.Text, true, CancellationToken.None);
-        }
-
-        public void AddOnMessage(Action<string> messageAction)
-        {
-            OnMessageReceived += messageAction;
-        }
-
-        public void AddOnDisconnected(Action<string> disconnectedAction)
-        {
-            OnDisconnected += disconnectedAction;
-        }
-
         public async Task Connect()
         {
             if (_ws.State != WebSocketState.Open)
             {
+                _ws.Dispose();
+                _ws = new ClientWebSocket();
+                _ws.Options.AddSubProtocol("janus-protocol");
+                OnMessageReceived += (message) => { _logger.Trace($"[Native WebSocket client] Message received: {message}"); };
+                OnDisconnected += (reason) => { _logger.Trace($"[Native WebSocket client] Disconnected: {reason}"); };
                 await _ws.ConnectAsync(_endpoint, CancellationToken.None);
                 Listen(_ws);
             }
         }
 
-        public bool IsAlive { get; }
+        public void AddOnMessage(Action<string> messageListener)
+        {
+            OnMessageReceived += messageListener;
+        }
 
-        private async void Listen(ClientWebSocket ws)
+        public bool IsAlive => _ws.State == WebSocketState.Open;
+
+        public Task Send(string payload)
+        {
+            return _ws.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes(payload)), WebSocketMessageType.Text, true,
+                CancellationToken.None);
+        }
+
+        public void AddOnDisconnected(Action<string> disconnectionListener)
+        {
+            OnDisconnected += disconnectionListener;
+        }
+
+        private async Task Listen(ClientWebSocket ws)
         {
             try
             {

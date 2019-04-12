@@ -6,5 +6,6 @@ namespace VideoconferencingBackend.Interfaces.Repositories
     public interface IUsersRepository : IRepository<User>
     {
         Task<User> GetByLogin(string login);
+        Task<User> GetBySessionId(long? responseSessionId);
     }
 }

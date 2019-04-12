@@ -10,7 +10,7 @@ namespace VideoconferencingBackend.Interfaces.Adapters
         /// </summary>
         /// <param name="data">Message to be sent</param>
         /// <returns></returns>
-        Task SendAsync(string data);
+        Task Send(string data);
 
         void AddOnMessage(Action<string> messageAction);
         void AddOnDisconnected(Action<string> disconnectedAction);
