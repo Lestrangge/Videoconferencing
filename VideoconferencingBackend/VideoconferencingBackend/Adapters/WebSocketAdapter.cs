@@ -21,7 +21,6 @@ namespace VideoconferencingBackend.Adapters
             _endpoint = new Uri(endpoint);
             _ws = new ClientWebSocket();
             _ws.Options.AddSubProtocol("janus-protocol");
-            OnMessageReceived += (message) => { _logger.Trace($"[Native WebSocket client] Message received: {message}"); };
             OnDisconnected += (reason) => { _logger.Trace($"[Native WebSocket client] Disconnected: {reason}"); };
         }
 
@@ -53,6 +52,7 @@ namespace VideoconferencingBackend.Adapters
 
         public Task Send(string payload)
         {
+            _logger.Trace($"[Native WebSocket client] Message sent: {payload}");
             return _ws.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes(payload)), WebSocketMessageType.Text, true,
                 CancellationToken.None);
         }

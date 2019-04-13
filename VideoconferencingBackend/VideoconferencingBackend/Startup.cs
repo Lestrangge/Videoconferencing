@@ -6,6 +6,7 @@ using Swashbuckle.AspNetCore.Swagger;
 using System;
 using System.IO;
 using System.Reflection;
+using Microsoft.AspNetCore.Http;
 using VideoconferencingBackend.Hubs;
 using VideoconferencingBackend.Interfaces.Repositories;
 using VideoconferencingBackend.Interfaces.Services;
@@ -41,6 +42,9 @@ namespace VideoconferencingBackend
 
             services.AddSingleton<IHasherService, Sha256Hasher>();
             services.AddSingleton<IJanusApiService, JanusApiService>();
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
+            services.AddWebSocket(Configuration);
             services.AddMvc();
             services.AddAnyCors();
             services.AddSwaggerGen(c =>

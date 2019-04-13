@@ -1,6 +1,6 @@
 ﻿namespace VideoconferencingBackend.Models.Janus.JanusApi.JanusRequests
 {
-    public class AttachPlugin : JanusBase
+    public class AttachPluginRequest : JanusBase
     {
         public new string Janus => "attach";
 

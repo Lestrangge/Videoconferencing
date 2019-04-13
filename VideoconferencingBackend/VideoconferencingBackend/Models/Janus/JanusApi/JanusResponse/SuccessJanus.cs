@@ -3,7 +3,6 @@
     public class SuccessJanus : JanusBase
     {
         public SuccessJanusData Data { get; set; }
-        public long SessionId { get; set; }
         public SuccessJanus()
         {
             Data = new SuccessJanusData();
@@ -17,6 +16,6 @@
 
     public class SuccessJanusData
     {
-        public int Id { get; set; }
+        public long? Id { get; set; }
     }
 }

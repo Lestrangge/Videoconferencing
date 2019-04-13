@@ -31,11 +31,15 @@ namespace VideoconferencingBackend.Models
                 entity.HasIndex(e => e.GroupGuid).IsUnique();
                 entity.HasIndex(e => e.Name).IsUnique();
             });
+            modelBuilder.Entity<User>()
+                .HasMany(user => user.Handles)
+                .WithOne(handle => handle.User);
         }
 
         public DbSet<User> Users { get; set; }
         public DbSet<Group> Groups { get; set; }
         public DbSet<GroupUser> GroupUsers { get; set; }
         public DbSet<Message> Messages { get; set; }
+        public DbSet<Handle> Handles { get; set; }
     }
 }

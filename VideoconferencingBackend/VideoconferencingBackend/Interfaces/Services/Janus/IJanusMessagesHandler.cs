@@ -1,6 +1,6 @@
 ﻿namespace VideoconferencingBackend.Interfaces.Services.Janus
 {
-    public interface IJanusMessagesHandlerService
+    public interface IJanusMessagesHandler
     {
         void OnDisconnected(string reason);
         void MessageHandler(string payload);

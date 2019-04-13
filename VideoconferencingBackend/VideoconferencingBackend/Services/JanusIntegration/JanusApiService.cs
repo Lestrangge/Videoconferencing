@@ -1,58 +1,103 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using NLog;
 using System;
 using System.Text;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Configuration;
+using VideoconferencingBackend.Hubs;
+using VideoconferencingBackend.Interfaces.Adapters;
 using VideoconferencingBackend.Interfaces.Repositories;
 using VideoconferencingBackend.Interfaces.Services.Janus;
 using VideoconferencingBackend.Models.DBModels;
 using VideoconferencingBackend.Models.Janus;
+using VideoconferencingBackend.Models.Janus.JanusApi.JanusRequests;
+using VideoconferencingBackend.Models.Janus.JanusApi.JanusResponse;
 using VideoconferencingBackend.Models.Janus.PluginApi;
 using VideoconferencingBackend.Models.Janus.PluginApi.PluginRequest;
 using VideoconferencingBackend.Models.Janus.PluginApi.PluginResponse;
 
 namespace VideoconferencingBackend.Services.JanusIntegration
 {
-    public class JanusApiService : IJanusApiService
+    public partial class JanusApiService : IJanusApiService
     {
         private readonly IHttpContextAccessor _accessor;
-        private readonly IJanusConnectionService _janus;
         private readonly Random _random = new Random();
-        private readonly IUsersRepository _users;
         private readonly ILogger _logger = LogManager.GetCurrentClassLogger();
-        public Task Register(string username)
+        private readonly IServiceProvider _scopeFactory;
+        private readonly IHubContext<JanusMessagesHub> _hub;
+
+
+        public JanusApiService(IHttpContextAccessor accessor,IServiceProvider scopeFactory, IWebSocketAdapter ws,
+            IConfiguration config, IHubContext<JanusMessagesHub> hub)
         {
-            throw new NotImplementedException();
+            _accessor = accessor;
+            _scopeFactory = scopeFactory;
+            _hub = hub;
+            _ws = ws;
+            _ws.AddOnDisconnected(OnDisconnected);
+            _ws.AddOnMessage(MessagesHandler);
+            int.TryParse(config["JanusTimeout"], out var timeout);
+            if (timeout > 0)
+                _janusTimeout = timeout;
         }
 
-        public Task CreateRoom()
+        #region prepareUser
+        private async Task<long?> CreateSession()
         {
-            throw new NotImplementedException();
+            var request = new CreateSessionRequest(RandomString());
+            _logger.Trace($"Janus create session request: {JsonConvert.SerializeObject(request)}");
+            return (Send<SuccessJanus>(request)).Data.Id;
         }
 
-        public Task JoinRoom()
+        public async Task<long?> AttachPlugin()
         {
-            throw new NotImplementedException();
+            var request = new AttachPluginRequest();
+            _logger.Trace($"Janus attach plugin request: {JsonConvert.SerializeObject(request)}");
+            return (await SendJanusRequest<SuccessJanus>(request)).Data.Id;
         }
 
-        public Task<Jsep> InitiateCall(string groupName)
+        private async Task<User> PrepareUser(User user)
         {
-            throw new NotImplementedException();
+            user.SessionId = await CreateSession();
+            using (var scope = _scopeFactory.CreateScope())
+            {
+                await scope.ServiceProvider.GetService<IUsersRepository>().Update(user);
+            }
+            user.HandleId = await AttachPlugin();
+            using (var scope = _scopeFactory.CreateScope())
+            {
+                await scope.ServiceProvider.GetService<IUsersRepository>().Update(user);
+            }
+            return user;
+        }
+        #endregion
+
+        public async Task<Jsep> InitiateCall(string groupGuid, Jsep jsep)
+        {
+            var user = await PrepareUser(await MakeUser());
+            var request = new JoinAndConfigureRequest
+            {
+                Transaction = RandomString(),
+                Body = new JoinAndConfigureRequestBody
+                {
+                    Audio = true,
+                    Video = true,
+                    Room = 1234,
+                    Display = user.Login
+                },
+                Jsep = jsep
+
+            };
+            var result = await SendPluginRequest<JoinAndConfigureRequestBody, JoinAndConfigureResponse>(request, false);
+            return result.Jsep;
         }
 
-        public Task StartCall(Jsep jsep)
+        public async Task<string> Trickle(TrickleCandidateReceived candidateReceived)
         {
-            throw new NotImplementedException();
-        }
-
-        public Task<Jsep> InitiateCall(string groupName, Jsep jsep)
-        {
-            return Task.FromResult(new Jsep { Sdp = "", Type = "answer" });
-        }
-
-        public Task Trickle(TrickleCandidateReceived candidateReceived)
-        {
+            
             var request = new TrickleRequest();
             if (candidateReceived.Completed)
                 request.Candidate = new TrickleCompleted { Completed = true };
@@ -63,15 +108,74 @@ namespace VideoconferencingBackend.Services.JanusIntegration
                     SdpMLineIndex = candidateReceived.SdpMLineIndex,
                     SdpMid = candidateReceived.SdpMid
                 };
+            request.HandleId = (await MakeUser()).HandleId;
             _logger.Trace($"Janus Trickle request: {JsonConvert.SerializeObject(request)}");
-            return SendJanusRequest<AckResponse>(request, true);
+
+            var res = await SendJanusRequest<AckResponse>(request, true);
+            return res.Janus;
         }
 
-        private Task<User> MakeUser()
+        public async Task<Jsep> JoinPublisher(long feed, long handleId)
         {
-            return _users.Get(_accessor.HttpContext.User.Identity.Name);
+            var request = new JoinRequest
+            {
+                HandleId = handleId,
+                Body = new JoinRequestBody
+                {
+                    Feed = feed,
+                    Room = 1234
+                }
+            };
+            var result = await SendJanusRequest<JoinResponse>(request, false);
+            return result.Jsep;
         }
 
+        public async Task<string> StartPeerConnection(Jsep answer, long handleId)
+        {
+            var request = new StartRequest()
+            {
+                Jsep = answer,
+                HandleId = handleId,
+                Body = new StartRequestBody
+                {
+                    Room = 1234
+                }
+            };
+            var result = await SendJanusRequest<StartResponse>(request, false);
+            return result.Plugindata.Data.Started;
+        }
+
+        #region Senders
+        private async Task<TR> SendPluginRequest<TB, TR>(PluginRequestBase<TB> message, bool release = false, User one = null)
+            where TB : PluginRequestBodyBase
+            where TR : JanusBase
+        {
+            var user = one ?? await MakeUser();
+            message.SessionId = user.SessionId;
+            message.Transaction = RandomString();
+            message.HandleId = user.HandleId;
+            return await Task.Run(() => Send<TR>(message, release));
+        }
+        private async Task<TR> SendJanusRequest<TR>(JanusBase message, bool release = false, User one = null) where TR : JanusBase
+        {
+            var user = one ?? await MakeUser();
+            message.SessionId = user.SessionId;
+            message.Transaction = RandomString();
+            return await Task.Run(() => Send<TR>(message, release));
+        }
+        #endregion
+
+        #region Helpers
+        private async Task<User> MakeUser()
+        {
+            User user;
+            using (var scope = _scopeFactory.CreateScope())
+            {
+                user = await scope.ServiceProvider.GetService<IUsersRepository>().Get(_accessor.HttpContext.User.Identity.Name);
+            }
+
+            return user;
+        }
 
         private string RandomString()
         {
@@ -84,23 +188,7 @@ namespace VideoconferencingBackend.Services.JanusIntegration
             }
             return builder.ToString();
         }
+        #endregion
 
-        private async Task<TR> SendPluginRequest<TB, TR>(PluginBase<TB> message, bool release = false, User one = null) 
-            where TB : PluginBodyBase
-            where TR: JanusBase
-        {
-            var user = one ?? await MakeUser();
-            message.SessionId = user.SessionId;
-            message.Transaction = RandomString();
-            message.HandleId = user.HandleId;
-            return _janus.Send<TR>(message, release);
-        }
-        private async Task<TR> SendJanusRequest<TR>(JanusBase message, bool release = false, User one = null) where TR : JanusBase
-        {
-            var user = one ?? await MakeUser();
-            message.SessionId = user.SessionId;
-            message.Transaction = RandomString();
-            return _janus.Send<TR>(message, release);
-        }
     }
 }

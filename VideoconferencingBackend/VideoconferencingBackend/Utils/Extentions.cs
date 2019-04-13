@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Cors.Infrastructure;
@@ -11,6 +12,8 @@ using Newtonsoft.Json.Serialization;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using VideoconferencingBackend.Adapters;
+using VideoconferencingBackend.Interfaces.Adapters;
 using VideoconferencingBackend.Interfaces.Services.Authentication;
 using VideoconferencingBackend.Models;
 using VideoconferencingBackend.Services.AuthenticationServices;
@@ -61,7 +64,7 @@ namespace VideoconferencingBackend.Utils
                 {
                     options.PayloadSerializerSettings.ContractResolver = new DefaultContractResolver
                     {
-                        NamingStrategy = new SnakeCaseNamingStrategy()
+                        NamingStrategy = new CamelCaseNamingStrategy()
                     };
                 });
             //  .AddRedis(config["Redis"]);
@@ -138,6 +141,16 @@ namespace VideoconferencingBackend.Utils
             if (page == null || pageSize == null)
                 return query;
             return query.Skip((int)page * (int)pageSize).Take((int)pageSize);
+        }
+        public static IServiceCollection AddWebSocket(this IServiceCollection services, IConfiguration config)
+        {
+            services.AddSingleton<IWebSocketAdapter>((serviceProvider) => new WebSocketAdapter(config["Janus"]));
+            return services;
+        }
+
+        public static bool IsNullOrEmpty<T>(this IEnumerable<T> collection)
+        {
+            return collection == null || !collection.Any();
         }
     }
 }

@@ -1,11 +1,11 @@
 ﻿namespace VideoconferencingBackend.Models.Janus.PluginApi.PluginRequest
 {
-    public class PublishRequest : PluginBase<PublishRequestBody>
+    public class PublishRequest : PluginRequestBase<PublishRequestBody>
     {
         public Jsep Jsep { get; set; }
     }
 
-    public class PublishRequestBody : PluginBodyBase
+    public class PublishRequestBody : PluginRequestBodyBase
     {
         public override string Request => "publish";
         public bool Audio { get; set; }

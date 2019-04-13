@@ -9,6 +9,8 @@ using VideoconferencingBackend.DTO.Message.Response;
 using VideoconferencingBackend.Interfaces.Repositories;
 using VideoconferencingBackend.Interfaces.Services;
 using VideoconferencingBackend.Interfaces.Services.Janus;
+using VideoconferencingBackend.Models.Janus.PluginApi;
+using VideoconferencingBackend.Models.Janus.PluginApi.PluginRequest;
 
 namespace VideoconferencingBackend.Hubs
 {
@@ -18,12 +20,14 @@ namespace VideoconferencingBackend.Hubs
         private readonly ILogger _logger = LogManager.GetCurrentClassLogger();
         private readonly IGroupsRepository _groups;
         private readonly IChatService _chats;
+        private readonly IUsersRepository _users;
 
-        public JanusMessagesHub(IJanusApiService janus, IGroupsRepository groups, IChatService chats)
+        public JanusMessagesHub(IJanusApiService janus, IGroupsRepository groups, IChatService chats, IUsersRepository users)
         {
             _janus = janus;
             _groups = groups;
             _chats = chats;
+            _users = users;
         }
 
         public string TestFree()
@@ -35,6 +39,9 @@ namespace VideoconferencingBackend.Hubs
         {
             var me = Context.User.Identity.Name;
             var groups = await _groups.GetUsersGroups(me, 0, await _groups.GetUsersGroupsLength(me));
+            var user = await _users.Get(me);
+            user.ConnectionId = Context.ConnectionId;
+            await _users.Update(user);
             foreach (var @group in groups)
                 await Groups.AddToGroupAsync(Context.ConnectionId, @group.GroupGuid);
             await base.OnConnectedAsync();
@@ -44,6 +51,9 @@ namespace VideoconferencingBackend.Hubs
         {
             var me = Context.User.Identity.Name;
             var groups = await _groups.GetUsersGroups(me, 0, await _groups.GetUsersGroupsLength(me));
+            var user = await _users.Get(me);
+            user.ConnectionId = "";
+            await _users.Update(user);
             foreach (var @group in groups)
                 await Groups.RemoveFromGroupAsync(Context.ConnectionId, @group.GroupGuid);
             await base.OnDisconnectedAsync(exception);
@@ -56,11 +66,49 @@ namespace VideoconferencingBackend.Hubs
         }
 
         [Authorize]
-        public async Task<HubResponse> InitiateCall(InitiateCallRequestDto initiateCallRequest)    
+        public async Task<HubResponse> InitiateCall(InitiateCallRequestDto initiateCallRequest)
         {
-            var jsep = await  _janus.InitiateCall(initiateCallRequest.GroupGuid);
-            await Clients.Group(initiateCallRequest.GroupGuid).SendAsync("CallStarted", initiateCallRequest.GroupGuid);
-            return new HubSuccessResponse(jsep);
+            try
+            {
+                var answer = await _janus.InitiateCall(initiateCallRequest.GroupGuid,
+                    new Jsep() {Sdp = initiateCallRequest.Sdp, Type = "offer"});
+                await Clients.Group(initiateCallRequest.GroupGuid)
+                    .SendAsync("CallStarted", initiateCallRequest.GroupGuid);
+                return new HubSuccessResponse(answer);
+            }
+            catch (Exception ex)
+            {
+                return new HubErrorResponse(1, ex.Message);
+            }
+
+        }
+        [Authorize]
+        public async Task<HubResponse> Trickle(TrickleCandidateReceived iceCandidate)
+        {
+            try
+            {
+                var res = await _janus.Trickle(iceCandidate);
+                return new HubSuccessResponse("ack");
+            }
+            catch (Exception ex)
+            {
+                return new HubErrorResponse(1, ex.Message);
+            }
+        }
+
+        [Authorize]
+        public async Task<HubResponse> AnswerNewPublisher(AnswerNewPublisherRequsetDto answerNewPublisherRequest)
+        {
+            try
+            {
+                var res = await _janus.StartPeerConnection(answerNewPublisherRequest.Jsep,
+                    answerNewPublisherRequest.HandleId);
+                return new HubSuccessResponse(res);
+            }
+            catch (Exception ex)
+            {
+                return new HubErrorResponse(1, ex.Message);
+            }
         }
 
         [Authorize]

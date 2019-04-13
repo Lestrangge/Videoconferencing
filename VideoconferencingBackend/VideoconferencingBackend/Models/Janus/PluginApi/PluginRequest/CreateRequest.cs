@@ -1,10 +1,10 @@
 ﻿namespace VideoconferencingBackend.Models.Janus.PluginApi.PluginRequest
 {
-    public class CreateRequest : PluginBase<CreateRequestBody>
+    public class CreateRequest : PluginRequestBase<CreateRequestBody>
     {
     }
 
-    public class CreateRequestBody : PluginBodyBase
+    public class CreateRequestBody : PluginRequestBodyBase
     {
         public override string Request => "create";
         public bool Permanent => true;

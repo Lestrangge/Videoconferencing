@@ -1,11 +1,11 @@
 ﻿namespace VideoconferencingBackend.Models.Janus.PluginApi.PluginRequest
 {
-    public class EditRequest : PluginBase<EditVideoroomBody>
+    public class EditRequest : PluginRequestBase<EditVideoroomRequestBody>
     {
-        public override EditVideoroomBody Body { get; set; }
+        public EditVideoroomRequestBody RequestBody { get; set; }
     }
 
-    public class EditVideoroomBody : PluginBodyBase
+    public class EditVideoroomRequestBody : PluginRequestBodyBase
     {
         public override string Request => "edit";
         public string NewDescription { get; set; }

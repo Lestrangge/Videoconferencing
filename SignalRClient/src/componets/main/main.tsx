@@ -1,8 +1,6 @@
 import * as React from 'react'
-import Core from "src/core/core"
 import Auth from "../auth/auth"
-import { toast } from 'react-toastify';
-import Invoker from "./../invoker/invoker"
+import Invoker from "../invoker/invoker"
 interface IState {
     isLoggedIn: boolean;
 }
@@ -18,10 +16,10 @@ export default class Main extends React.Component<any, IState>{
     }
     render(){
         return  <div>
-                        {this.state.isLoggedIn ? 
-                            <Invoker/>: 
-                            <Auth ref="auth" onAuthorized={()=> this.onAuthorized()}/>
-                        }
+                    {this.state.isLoggedIn ? 
+                        <Invoker/>: 
+                        <Auth ref="auth" onAuthorized={()=> this.onAuthorized()}/>
+                    }
                 </div>
     }
 }

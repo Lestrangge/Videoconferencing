@@ -1,14 +1,15 @@
 var adapter = require("webrtc-adapter");
-import {config} from './../../config'
+import {config} from '../../config'
 import axios from 'axios'
 import { HubConnectionBuilder, HubConnection } from '@aspnet/signalr';
-
+import WebrtcStuff from "./webrtcStuff"
+import { resolve } from 'path';
 
 export default class Core{
     private static instance: Core;
     private hubConnection: HubConnection;
     private token: string;
-
+    private webRtcStuff: WebrtcStuff;
 
     private constructor(token: string){
         this.hubConnection = new HubConnectionBuilder()
@@ -16,8 +17,10 @@ export default class Core{
             .configureLogging(0)
             .build();
         this.hubConnection.on("IncomingMessage", this.onChatMessage);
-        this.hubConnection.start();
+        this.hubConnection.on("NewPublisher", this.onNewPublisher);
 
+        this.hubConnection.start();
+        this.webRtcStuff = new WebrtcStuff(this.trickle)
     }
 
     public static getInstance(){
@@ -40,9 +43,44 @@ export default class Core{
         }) 
     }
 
+    public initCall(onLocalStream: (stream: MediaStream) => void, 
+                onRemoteStream: (stream: MediaStream) => void,
+                groupGuid: string){
+        var that = this;
+        return new Promise((resolve, reject)=> {
+            that.webRtcStuff.setOnLocalStream(onLocalStream);
+            that.webRtcStuff.setOnRemoteStream(onRemoteStream);
+            that.webRtcStuff.generateSdp()
+                .then((jsep: any)=>{
+                    that.invoke("InitiateCall", {'sdp': jsep.sdp, "groupGuid": groupGuid})
+                        .then((response:any)=>{
+                            this.webRtcStuff.handleAnswer(response.data)
+                        })
+                })
+                .catch(reject)
+        })
+    }
+
+    private trickle(candidate: any){
+        Core.getInstance().invoke("Trickle", candidate)
+    }
+
     private onChatMessage(message: any){
         console.warn("IncomingMessage: ", message)
     }
+
+    private onNewPublisher(response: any){
+        var that = this;
+        that.webRtcStuff.generateSdp(response.jsep)
+            .then((jsep: any)=>{
+                that.invoke("AnswerNewPublisher", {'sdp': jsep, "handleId":response.handleId})
+                    .then((response:any)=>{
+                        this.webRtcStuff.handleAnswer(response.data)
+                    })
+            })
+                
+    }
+
 
     private invoke(method: string, ...params:any[]){
         return new Promise((resolve, reject) =>{

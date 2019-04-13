@@ -1,5 +1,5 @@
 import * as React from 'react';
-import Core from "./../../core/core";
+import Core from "../../core/core";
 import { toast } from 'react-toastify';
 
 interface IProps{

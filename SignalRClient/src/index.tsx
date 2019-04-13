@@ -2,7 +2,7 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
-import Main from "../src/componets/main/main";
+import Main from "./componets/main/main";
 ReactDOM.render(
     <div>
         <Main/>

@@ -89,8 +89,7 @@ namespace VideoconferencingBackend.Controllers
         /// <summary>
         /// Join the group, specified by group name
         /// </summary>
-        /// <param name="groupGuid">Guid of the group to join</param>
-        /// <param name="userGuid"></param>
+        /// <param name="joinRequest"></param>
         /// <returns>Joined group</returns>
         /// <response code="200">Joined group</response>
         /// <response code="400">Group not found</response>

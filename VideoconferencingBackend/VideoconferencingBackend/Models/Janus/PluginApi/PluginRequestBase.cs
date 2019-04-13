@@ -1,6 +1,6 @@
 ﻿namespace VideoconferencingBackend.Models.Janus.PluginApi
 {
-    public class PluginBase<T> : JanusBase where T : PluginBodyBase
+    public class PluginRequestBase<T> : JanusBase where T : PluginRequestBodyBase
     {
         public override string Janus => "message";
         public virtual T Body { get; set; }

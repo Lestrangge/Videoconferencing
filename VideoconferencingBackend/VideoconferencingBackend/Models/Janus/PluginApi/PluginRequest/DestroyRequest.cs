@@ -1,11 +1,11 @@
 ﻿namespace VideoconferencingBackend.Models.Janus.PluginApi.PluginRequest
 {
-    public class DestroyRequest : PluginBase<DestroyVideoroomBody>
+    public class DestroyRequest : PluginRequestBase<DestroyVideoroomRequestBody>
     {
-        public override DestroyVideoroomBody Body { get; set; }
+        public DestroyVideoroomRequestBody RequestBody { get; set; }
     }
 
-    public class DestroyVideoroomBody : PluginBodyBase
+    public class DestroyVideoroomRequestBody : PluginRequestBodyBase
     {
         public override string Request => "join";
         public bool Permanent { get; set; }

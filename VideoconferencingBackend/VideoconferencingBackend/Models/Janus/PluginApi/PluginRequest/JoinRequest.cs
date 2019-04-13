@@ -1,13 +1,11 @@
 ﻿namespace VideoconferencingBackend.Models.Janus.PluginApi.PluginRequest
 {
-    public class JoinRequest : PluginBase<JoinBody>
-    {
-    }
+    public class JoinRequest : PluginRequestBase<JoinRequestBody> { }
 
-    public class JoinBody : PluginBodyBase
+    public class JoinRequestBody : PluginRequestBodyBase
     {
         public override string Request => "join";
-        public string Ptype => "publisher";
-        public string Display { get; set; }
+        public string Ptype => "subscriber";
+        public long Feed { get; set; }
     }
 }

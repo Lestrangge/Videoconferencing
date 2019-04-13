@@ -13,36 +13,14 @@ using VideoconferencingBackend.Utils;
 
 namespace VideoconferencingBackend.Services.JanusIntegration
 {
-    public class JanusConnectionService : IJanusConnectionService
+    public partial class JanusApiService : IJanusConnectionService
     {
-        private readonly IJanusMessagesHandlerService _handlers;
         private readonly int _janusTimeout = int.MaxValue;
 
         private readonly Dictionary<string, JanusMessageEvent> _pendingRequests =
             new Dictionary<string, JanusMessageEvent>();
 
-        private readonly JsonSerializerSettings _snakeCase = new JsonSerializerSettings
-        {
-            ContractResolver = new DefaultContractResolver
-            {
-                NamingStrategy = new SnakeCaseNamingStrategy()
-            },
-            Formatting = Formatting.Indented
-        };
-
         private readonly IWebSocketAdapter _ws;
-
-        public JanusConnectionService(IJanusMessagesHandlerService handlers, IWebSocketAdapter ws,
-            IConfiguration config)
-        {
-            _handlers = handlers;
-            _ws = ws;
-            _ws.AddOnDisconnected(_handlers.OnDisconnected);
-            _ws.AddOnMessage(MessagesHandler);
-            int.TryParse(config["JanusTimeout"], out var timeout);
-            if (timeout > 0)
-                _janusTimeout = timeout;
-        }
 
         public TResponseType Send<TResponseType>(JanusBase request, bool releaseOnAck = false)
             where TResponseType : JanusBase
@@ -55,14 +33,14 @@ namespace VideoconferencingBackend.Services.JanusIntegration
             var response = listener.Result;
             if (response == null)
                 throw new TimeoutException("Janus timeout");
-            if (JsonConvert.DeserializeObject<JanusBase>(response) is JanusBase responseBase &&
+            if (JsonConvert.DeserializeObject<JanusBase>(response, _snakeCase) is JanusBase responseBase &&
                 responseBase.Janus != "Error")
-                return JsonConvert.DeserializeObject<TResponseType>(response);
+                return JsonConvert.DeserializeObject<TResponseType>(response, _snakeCase);
 
-            if (JsonConvert.DeserializeObject<JanusErrorResponse>(response) is JanusErrorResponse janusError
+            if (JsonConvert.DeserializeObject<JanusErrorResponse>(response, _snakeCase) is JanusErrorResponse janusError
                 && !string.IsNullOrEmpty(janusError.Error.Reason))
                 throw new ArgumentException(janusError.Error.Reason);
-            if (JsonConvert.DeserializeObject<PluginErrorResponse>(response) is PluginErrorResponse pluginError
+            if (JsonConvert.DeserializeObject<PluginErrorResponse>(response, _snakeCase) is PluginErrorResponse pluginError
                 && !string.IsNullOrEmpty(pluginError.Plugindata.Data.Error))
                 throw new ArgumentException(pluginError.Plugindata.Data.Error);
             throw new FormatException("Unknown janus response");
@@ -70,21 +48,20 @@ namespace VideoconferencingBackend.Services.JanusIntegration
 
         private void MessagesHandler(string payload)
         {
-            var baseResponse = JsonConvert.DeserializeObject<JanusBase>(payload);
+            var baseResponse = JsonConvert.DeserializeObject<JanusBase>(payload, _snakeCase);
             var transaction = baseResponse.Transaction;
             if (baseResponse.Janus == "ack"
                 && _pendingRequests.ContainsKey(transaction)
                 && !_pendingRequests[transaction].ReleaseOnAck)
                 return;
-            if (_pendingRequests.ContainsKey(transaction)
-                && _pendingRequests[transaction].ReleaseOnAck)
+            if (!string.IsNullOrEmpty(transaction) && _pendingRequests.ContainsKey(transaction))
             {
                 _pendingRequests[transaction].Set(payload);
                 _pendingRequests.Remove(transaction);
             }
             else
             {
-                _handlers.MessageHandler(payload);
+                MessageHandler(payload);
             }
         }
 
