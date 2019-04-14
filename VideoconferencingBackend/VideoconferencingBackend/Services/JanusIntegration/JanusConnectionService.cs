@@ -15,7 +15,7 @@ namespace VideoconferencingBackend.Services.JanusIntegration
 {
     public partial class JanusApiService : IJanusConnectionService
     {
-        private readonly int _janusTimeout = int.MaxValue;
+        private readonly int _janusTimeout = 15000;
 
         private readonly Dictionary<string, JanusMessageEvent> _pendingRequests =
             new Dictionary<string, JanusMessageEvent>();

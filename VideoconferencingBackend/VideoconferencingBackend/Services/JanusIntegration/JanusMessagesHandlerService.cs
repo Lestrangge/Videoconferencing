@@ -54,10 +54,15 @@ namespace VideoconferencingBackend.Services.JanusIntegration
                     if (baseJanusResponse.Janus == "event")
                     {
                         var newPublisher = JsonConvert.DeserializeObject<NewAvailablePublisherResponse>(payload, _snakeCase);
+                        var unpublished = JsonConvert.DeserializeObject<UnpublishedResponse>(payload, _snakeCase);
                         if (!newPublisher.Plugindata.Data.Publishers.IsNullOrEmpty())
                         {
                             NewAvailablePublisherHandler(newPublisher).Wait();
                             return;
+                        }
+                        else if (unpublished.Plugindata.Data.Unpublished != null)
+                        {
+                            UnpublishedHandler(unpublished).Wait();
                         }
                         var basePluginResponse = JsonConvert.DeserializeObject<PluginResponseBase>(payload, _snakeCase);
                         
@@ -92,16 +97,29 @@ namespace VideoconferencingBackend.Services.JanusIntegration
 
         private async Task NewAvailablePublisherHandler(NewAvailablePublisherResponse response)
         {
-            var listeningHandle = await AttachPlugin();
-            var feed = response.Plugindata.Data.Publishers?.FirstOrDefault()?.Id;
-            var offer = await JoinPublisher((long)feed, (long)listeningHandle);
-            string connection;
-            using (var context = _scopeFactory.CreateScope())
+            User user;
+            using (var scope = _scopeFactory.CreateScope())
             {
-                var users = context.ServiceProvider.GetService<IUsersRepository>();
-                connection = (await users.GetBySessionId(response.SessionId)).ConnectionId;
+                user = await scope.ServiceProvider.GetService<IUsersRepository>().GetBySessionId(response.SessionId);
+                if (user == null)
+                    return;
             }
-            await _hub.Clients.Client(connection).SendAsync("NewPublisher", new NewPublisherEvent{HandleId = (long)listeningHandle, Jsep = offer});
+            user.HandleId = await AttachPlugin(user);
+            var connection = user.ConnectionId;
+            var feed = response.Plugindata.Data.Publishers?.FirstOrDefault()?.Id;
+            var offer = await JoinPublisher((long)feed, user);
+            await _hub.Clients.Client(connection).SendAsync("NewPublisher", new NewPublisherEvent((long)user.HandleId, offer,user));
+        }
+
+        private async Task UnpublishedHandler(UnpublishedResponse response)
+        {
+            string connection;
+            using (var scope = _scopeFactory.CreateScope())
+            {
+                connection = (await scope.ServiceProvider.GetService<IUsersRepository>().GetBySessionId(response.SessionId)).ConnectionId;
+            }
+            if(!string.IsNullOrEmpty(connection))
+                await _hub.Clients.Client(connection).SendAsync("Unpublished", new UnpublishedEvent{HandleId = (long)response.Plugindata.Data.Unpublished });
         }
     }
 }

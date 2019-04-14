@@ -1,6 +1,6 @@
 ﻿namespace VideoconferencingBackend.Models.Janus.PluginApi.PluginRequest
 {
-    public class DestroyRequest : PluginRequestBase<DestroyVideoroomRequestBody>
+    public class DestroyVideoroomRequest : PluginRequestBase<DestroyVideoroomRequestBody>
     {
         public DestroyVideoroomRequestBody RequestBody { get; set; }
     }

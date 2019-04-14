@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using VideoconferencingBackend.Models.DBModels;
 using VideoconferencingBackend.Models.Janus.PluginApi;
 using VideoconferencingBackend.Models.Janus.PluginApi.PluginRequest;
 
@@ -8,11 +9,11 @@ namespace VideoconferencingBackend.Interfaces.Services.Janus
     {
         Task<string> Trickle(TrickleCandidateReceivedDto candidateReceived);
         Task<Jsep> InitiateCall(string groupGuid,Jsep jsep);
-        Task<long?> AttachPlugin();
+        Task<long?> AttachPlugin(User one = null);  
 
-        Task<Jsep> JoinPublisher(long feed, long handleId);
+        Task<Jsep> JoinPublisher(long feed, User one);
         Task<string> StartPeerConnection(Jsep answer, long handleId);
-
+        Task<string> Destroy();
 
     }
 }

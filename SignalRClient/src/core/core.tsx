@@ -16,11 +16,11 @@ export default class Core{
             .withUrl(config.SIGNALR + "?access_token=" + token)
             .configureLogging(0)
             .build();
+        this.webRtcStuff = new WebrtcStuff(this.trickle)
         this.hubConnection.on("IncomingMessage", this.onChatMessage);
         this.hubConnection.on("NewPublisher", this.onNewPublisher);
 
         this.hubConnection.start();
-        this.webRtcStuff = new WebrtcStuff(this.trickle)
     }
 
     public static getInstance(){
@@ -71,12 +71,11 @@ export default class Core{
     }
 
     private onNewPublisher(response: any){
-        var that = this;
+        var that = Core.getInstance();
         that.webRtcStuff.generateSdp(response.jsep)
             .then((jsep: any)=>{
-                that.invoke("AnswerNewPublisher", {'sdp': jsep, "handleId":response.handleId})
+                that.invoke("AnswerNewPublisher", {'answer': jsep, "handleId":response.handleId})
                     .then((response:any)=>{
-                        this.webRtcStuff.handleAnswer(response.data)
                     })
             })
                 

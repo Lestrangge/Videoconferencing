@@ -52,11 +52,11 @@ namespace VideoconferencingBackend.Services.JanusIntegration
             return (Send<SuccessJanus>(request)).Data.Id;
         }
 
-        public async Task<long?> AttachPlugin()
+        public async Task<long?> AttachPlugin(User one = null)
         {
             var request = new AttachPluginRequest();
             _logger.Trace($"Janus attach plugin request: {JsonConvert.SerializeObject(request)}");
-            return (await SendJanusRequest<SuccessJanus>(request)).Data.Id;
+            return (await SendJanusRequest<SuccessJanus>(request, one: one)).Data.Id;
         }
 
         private async Task<User> PrepareUser(User user)
@@ -92,6 +92,23 @@ namespace VideoconferencingBackend.Services.JanusIntegration
 
             };
             var result = await SendPluginRequest<JoinAndConfigureRequestBody, JoinAndConfigureResponse>(request, false);
+            var publishers = result.Plugindata.Data.Publishers;
+            foreach (var publisher in publishers)
+            {
+#pragma warning disable 4014
+                NewAvailablePublisherHandler(new NewAvailablePublisherResponse
+#pragma warning restore 4014
+                {
+                    SessionId = user.SessionId,
+                    Plugindata = new NewAvailablePublisherResponsePluginData
+                    {
+                        Data = new NewAvailablePublisherResponseData
+                        {
+                            Publishers = new []{publisher}
+                        }
+                    }
+                });
+            }
             return result.Jsep;
         }
 
@@ -115,18 +132,18 @@ namespace VideoconferencingBackend.Services.JanusIntegration
             return res.Janus;
         }
 
-        public async Task<Jsep> JoinPublisher(long feed, long handleId)
+        public async Task<Jsep> JoinPublisher(long feed, User one)
         {
             var request = new JoinRequest
             {
-                HandleId = handleId,
+                HandleId = one.HandleId,
                 Body = new JoinRequestBody
                 {
                     Feed = feed,
                     Room = 1234
                 }
             };
-            var result = await SendJanusRequest<JoinResponse>(request, false);
+            var result = await SendJanusRequest<JoinResponse>(request, false, one:one);
             return result.Jsep;
         }
 
@@ -143,6 +160,13 @@ namespace VideoconferencingBackend.Services.JanusIntegration
             };
             var result = await SendJanusRequest<StartResponse>(request, false);
             return result.Plugindata.Data.Started;
+        }
+
+        public async Task<string> Destroy()
+        {
+            var request = new DestroyRequest();
+            var result = await SendJanusRequest<SuccessJanus>(request, false);
+            return result.Janus;
         }
 
         #region Senders

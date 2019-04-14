@@ -5,6 +5,7 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using VideoconferencingBackend.Interfaces.Adapters;
 
 namespace VideoconferencingBackend.Adapters
@@ -81,7 +82,20 @@ namespace VideoconferencingBackend.Adapters
 
                         ms.Seek(0, SeekOrigin.Begin);
                         var message = Encoding.UTF8.GetString(ms.ToArray());
-                        OnMessageReceived?.Invoke(message);
+#pragma warning disable 4014
+                        Task.Run(() =>
+#pragma warning restore 4014
+                        {
+                            try
+                            {
+                                OnMessageReceived?.Invoke(message);
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.Trace($"Error handling message: {message}, error: {JsonConvert.SerializeObject(ex)}");
+                            }
+                        });
+
                     }
                 } while (ws.State != WebSocketState.Closed);
             }
@@ -90,5 +104,6 @@ namespace VideoconferencingBackend.Adapters
                 OnDisconnected?.Invoke(ex.Message);
             }
         }
+
     }
 }
