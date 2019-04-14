@@ -4,7 +4,7 @@ namespace VideoconferencingBackend.DTO.Hub.ServerRequest
 {
     public class AnswerNewPublisherRequsetDto
     {
-        public Jsep Jsep { get; set; }
+        public Jsep Answer { get; set; }
         public long HandleId { get; set; }
     }
 }

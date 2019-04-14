@@ -53,6 +53,15 @@ namespace VideoconferencingBackend.Hubs
             var groups = await _groups.GetUsersGroups(me, 0, await _groups.GetUsersGroupsLength(me));
             var user = await _users.Get(me);
             user.ConnectionId = "";
+            try
+            {
+                await _janus.Destroy();
+                user.ConnectionId = null;
+            }
+            catch (Exception ex)
+            {
+
+            }
             await _users.Update(user);
             foreach (var @group in groups)
                 await Groups.RemoveFromGroupAsync(Context.ConnectionId, @group.GroupGuid);
@@ -101,7 +110,7 @@ namespace VideoconferencingBackend.Hubs
         {
             try
             {
-                var res = await _janus.StartPeerConnection(answerNewPublisherRequest.Jsep,
+                var res = await _janus.StartPeerConnection(answerNewPublisherRequest.Answer,
                     answerNewPublisherRequest.HandleId);
                 return new HubSuccessResponse(res);
             }
