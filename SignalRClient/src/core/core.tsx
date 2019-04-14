@@ -52,7 +52,8 @@ export default class Core{
             that.webRtcStuff.setOnRemoteStream(onRemoteStream);
             that.webRtcStuff.generateSdp()
                 .then((jsep: any)=>{
-                    that.invoke("InitiateCall", {'sdp': jsep.sdp, "groupGuid": groupGuid})
+                    console.log("Jsep: ", jsep);
+                    that.invoke("InitiateCall", {'offer': jsep, "groupGuid": groupGuid})
                         .then((response:any)=>{
                             this.webRtcStuff.handleAnswer(response.data)
                         })

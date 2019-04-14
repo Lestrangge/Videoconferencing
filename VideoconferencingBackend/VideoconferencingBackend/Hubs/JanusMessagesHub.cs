@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using Newtonsoft.Json;
 using NLog;
 using VideoconferencingBackend.DTO.Hub.ServerRequest;
 using VideoconferencingBackend.DTO.Hub.ServerResponse;
@@ -9,11 +10,11 @@ using VideoconferencingBackend.DTO.Message.Response;
 using VideoconferencingBackend.Interfaces.Repositories;
 using VideoconferencingBackend.Interfaces.Services;
 using VideoconferencingBackend.Interfaces.Services.Janus;
-using VideoconferencingBackend.Models.Janus.PluginApi;
 using VideoconferencingBackend.Models.Janus.PluginApi.PluginRequest;
 
 namespace VideoconferencingBackend.Hubs
 {
+    [Authorize]
     public class JanusMessagesHub : Hub
     {
         private readonly IJanusApiService _janus;
@@ -38,8 +39,10 @@ namespace VideoconferencingBackend.Hubs
         public override async Task OnConnectedAsync()
         {
             var me = Context.User.Identity.Name;
+            _logger.Trace($"User {me} connected. ");
             var groups = await _groups.GetUsersGroups(me, 0, await _groups.GetUsersGroupsLength(me));
             var user = await _users.Get(me);
+            _logger.Trace($"User {user.Login} found. Connection id: {Context.ConnectionId}");
             user.ConnectionId = Context.ConnectionId;
             await _users.Update(user);
             foreach (var @group in groups)
@@ -50,6 +53,7 @@ namespace VideoconferencingBackend.Hubs
         public override async Task OnDisconnectedAsync(Exception exception)
         {
             var me = Context.User.Identity.Name;
+            _logger.Trace($"User {me} disconnected");
             var groups = await _groups.GetUsersGroups(me, 0, await _groups.GetUsersGroupsLength(me));
             var user = await _users.Get(me);
             user.ConnectionId = "";
@@ -68,10 +72,10 @@ namespace VideoconferencingBackend.Hubs
         [Authorize]
         public async Task<HubResponse> InitiateCall(InitiateCallRequestDto initiateCallRequest)
         {
+            _logger.Trace($"InitiateCall reqest: {JsonConvert.SerializeObject(initiateCallRequest)}");
             try
             {
-                var answer = await _janus.InitiateCall(initiateCallRequest.GroupGuid,
-                    new Jsep() {Sdp = initiateCallRequest.Sdp, Type = "offer"});
+                var answer = await _janus.InitiateCall(initiateCallRequest.GroupGuid, initiateCallRequest.Offer);
                 await Clients.Group(initiateCallRequest.GroupGuid)
                     .SendAsync("CallStarted", initiateCallRequest.GroupGuid);
                 return new HubSuccessResponse(answer);
@@ -83,12 +87,15 @@ namespace VideoconferencingBackend.Hubs
 
         }
         [Authorize]
-        public async Task<HubResponse> Trickle(TrickleCandidateReceived iceCandidate)
+        public async Task<HubResponse> Trickle(TrickleCandidateReceivedDto iceCandidate)
         {
+            _logger.Trace($"Trickle request {iceCandidate}");
             try
             {
+                
                 var res = await _janus.Trickle(iceCandidate);
                 return new HubSuccessResponse("ack");
+
             }
             catch (Exception ex)
             {
@@ -99,6 +106,7 @@ namespace VideoconferencingBackend.Hubs
         [Authorize]
         public async Task<HubResponse> AnswerNewPublisher(AnswerNewPublisherRequsetDto answerNewPublisherRequest)
         {
+
             try
             {
                 var res = await _janus.StartPeerConnection(answerNewPublisherRequest.Jsep,

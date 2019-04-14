@@ -29,7 +29,7 @@ namespace VideoconferencingBackend.Models.Janus.PluginApi.PluginRequest
     }
 
 
-    public class TrickleCandidateReceived : TrickleBody
+    public class TrickleCandidateReceivedDto : TrickleBody
     {
         public string SdpMid { get; set; }
         public int SdpMLineIndex { get; set; }

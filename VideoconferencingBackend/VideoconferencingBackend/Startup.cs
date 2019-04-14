@@ -17,6 +17,8 @@ using VideoconferencingBackend.Services;
 using VideoconferencingBackend.Services.AuthenticationServices;
 using VideoconferencingBackend.Services.JanusIntegration;
 using VideoconferencingBackend.Utils;
+using Microsoft.AspNetCore.HttpOverrides;
+using System.Net;
 
 namespace VideoconferencingBackend
 {
@@ -62,6 +64,11 @@ namespace VideoconferencingBackend
         {
             if (env.IsDevelopment()){}
             app.UseDeveloperExceptionPage();
+            app.UseForwardedHeaders(new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            });
+
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {

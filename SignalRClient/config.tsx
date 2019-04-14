@@ -1,6 +1,6 @@
 export const config = {
-    REST: 'https://localhost:44374/',
-    SIGNALR: 'https://localhost:44374//signalr',
+    REST: 'https://localhost:44352/',
+    SIGNALR: 'https://localhost:44352/signalr',
     ROUTES:{
         LOGIN: '/users/login',
     },

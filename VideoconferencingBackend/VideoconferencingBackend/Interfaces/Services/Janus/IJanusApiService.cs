@@ -6,7 +6,7 @@ namespace VideoconferencingBackend.Interfaces.Services.Janus
 {
     public interface IJanusApiService : IJanusMessagesHandler, IJanusConnectionService
     {
-        Task<string> Trickle(TrickleCandidateReceived candidateReceived);
+        Task<string> Trickle(TrickleCandidateReceivedDto candidateReceived);
         Task<Jsep> InitiateCall(string groupGuid,Jsep jsep);
         Task<long?> AttachPlugin();
 

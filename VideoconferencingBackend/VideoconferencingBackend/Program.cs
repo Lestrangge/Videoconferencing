@@ -10,8 +10,7 @@ namespace VideoconferencingBackend
         public static void Main(string[] args)
         {
             NLogBuilder.ConfigureNLog("nlog.config").GetCurrentClassLogger();
-
-            CreateWebHostBuilder(args).UseUrls("https://*:5000").Build().Run();
+            CreateWebHostBuilder(args).Build().Run();
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>

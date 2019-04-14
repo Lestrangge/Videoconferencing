@@ -95,7 +95,7 @@ namespace VideoconferencingBackend.Services.JanusIntegration
             return result.Jsep;
         }
 
-        public async Task<string> Trickle(TrickleCandidateReceived candidateReceived)
+        public async Task<string> Trickle(TrickleCandidateReceivedDto candidateReceived)
         {
             
             var request = new TrickleRequest();
