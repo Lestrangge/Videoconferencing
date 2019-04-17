@@ -10,13 +10,13 @@ namespace VideoconferencingBackend.DTO.Hub.ServerEvents
     public class NewPublisherEvent
     {
         public long HandleId { get; set; }
-        public Jsep Jsep { get; set; }
+        public Jsep Answer { get; set; }
         public UserFoundDto User { get; set; }
 
         public NewPublisherEvent(long id, Jsep jsep, Models.DBModels.User user)
         {
             this.User = new UserFoundDto(user);
-            this.Jsep = jsep;
+            this.Answer = jsep;
             HandleId = id;
         }
     }

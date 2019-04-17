@@ -19,12 +19,12 @@ export default class InitiateVideocallInvoker extends React.Component<IProps, IS
     }
 
     onLocalStream(stream: MediaStream){
-        console.log("[KEK]: ", stream.active, " ", stream);
+        console.log("[KEK] local: ", stream.active, " ", stream);
         (this.refs.localVideo as HTMLVideoElement).srcObject = stream;
     }
 
     onRemoteStream(stream: MediaStream){
-        console.log("[KEK]: ", stream.active, " ", stream);
+        console.log("[KEK] remote: ", stream.active, " ", stream);
         (this.refs.remoteVideo as HTMLVideoElement).srcObject = stream;
     }
 
@@ -44,7 +44,7 @@ export default class InitiateVideocallInvoker extends React.Component<IProps, IS
             </div>
             <div style={{display: "flex", flexDirection:"row", height: 480, marginTop: "8px"}}>
                 <video ref="localVideo" autoPlay playsInline muted/>
-                <video ref="remoteVideo" autoPlay playsInline/>
+                <video ref="remoteVideo" autoPlay playsInline controls/>
             </div>
 
             <button style={{marginTop: "8px"}} onClick={()=> this.onCallInit()}>Init call</button>

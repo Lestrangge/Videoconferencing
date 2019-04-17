@@ -14,7 +14,7 @@ export default class RemoteWebrtcStuff{
     }
     private remoteStream : MediaStream;
     sendTrickleCandidate: (candidate: any) => void;
-    pc: RTCPeerConnection;
+    pc: any;
     stun = "stun:89.249.28.54:3478";
     iceDone = false;
     trickle = true;
@@ -37,12 +37,9 @@ export default class RemoteWebrtcStuff{
 			var pc_constraints = {
 				"optional": [{"DtlsSrtpKeyAgreement": true}]
             };
-            var pc_constraints = {
-				"optional": [{"DtlsSrtpKeyAgreement": true}]
-            };
             that.pc = new RTCPeerConnection(pc_config);
 
-			that.pc.onicecandidate = function(event) {
+			that.pc.onicecandidate = function(event:any) {
 				if (event.candidate == null) {
 					that.iceDone = true;
                     that.sendTrickleCandidate({"completed": true});
@@ -57,13 +54,13 @@ export default class RemoteWebrtcStuff{
 					that.sendTrickleCandidate(candidate);
 				}
             };
-            that.pc.ontrack = function(event) {
+            that.pc.ontrack = function(event: any) {
 				if(!event.streams)
 					return;
 				that.remoteStream = event.streams[0];
-				that.onRemoteStream(that.remoteStream);
+				that.onRemoteStream(event.streams[0]);
 				if(event.track && !event.track.onended) {
-					event.track.onended = function(ev) {
+					event.track.onended = function(ev: any) {
 						if(that.remoteStream) {
                             console.error("U should delete all shit here")
                         }
@@ -80,13 +77,16 @@ export default class RemoteWebrtcStuff{
     createAnswer(){
         var that = this;
         return new Promise((resolve, reject)=>{
-            //var mediaConstraints = {mandatory: {OfferToReceiveAudio: true, OfferToReceiveVideo: true}}
-            that.pc.createAnswer()
-                .then((answer)=>{
-                    that.pc.setLocalDescription(answer)
-                    resolve({"type": answer.type, "sdp": answer.sdp});
-                })
-                .catch(reject)
+            var mediaConstraints = {mandatory: {OfferToReceiveAudio: true, OfferToReceiveVideo: true}}
+            that.pc.createAnswer(
+                function (answer: any) {
+                    that.pc.setLocalDescription(answer);
+                    var jsep = {
+                        "type": answer.type,
+                        "sdp": answer.sdp
+                    };
+                    resolve(jsep);
+                }, reject, mediaConstraints);
         })
     }
 }

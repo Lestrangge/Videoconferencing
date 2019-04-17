@@ -31,7 +31,7 @@ export default class WebrtcStuff{
     }
 
     sendTrickleCandidate: (candidate: any) => void;
-    pc: RTCPeerConnection;
+    pc: any;
     stun = "stun:89.249.28.54:3478";
     iceDone = false;
     trickle = true;
@@ -55,9 +55,9 @@ export default class WebrtcStuff{
             var bundlePolicy ;
             var iceServers = [{ urls: this.stun}];
             var pc_config = { "iceServers": iceServers, "iceTransportPolicy": iceTransportPolicy, "bundlePolicy": bundlePolicy };
-            // var pc_constraints: any = {
-            //     "optional": [{ "DtlsSrtpKeyAgreement": true }]
-            // };
+            var pc_constraints: any = {
+                "optional": [{ "DtlsSrtpKeyAgreement": true }]
+            };
             
             this.pc = new RTCPeerConnection(pc_config);
             console.log("Preparing local SDP and gathering candidates (trickle=" + this.trickle + ")");

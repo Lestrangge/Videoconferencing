@@ -31,7 +31,6 @@
     "@types/react": "^16.8.13",
     "@types/react-dom": "^16.8.4",
     "@types/react-toastify": "^4.0.2",
-    "@types/webrtc": "0.0.24",
     "axios": "^0.18.0",
     "es6-promise": "^4.2.6",
     "react": "^16.8.6",

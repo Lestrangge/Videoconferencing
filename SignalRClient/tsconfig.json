@@ -9,14 +9,12 @@
         "jsx": "react",
         "lib": ["es5", "es2015", "dom", "scripthost"],
         "baseUrl": "./",
+        "skipLibCheck": true,
         "paths":{
             "src/*":["./src/*"],
             "components/*":["./src/components/*"],
             "assets/*":["./assets"]
-        },
-        "types": [
-            "webrtc"
-          ]
+        }
     },
     "include": [
         "./src/**/*"
