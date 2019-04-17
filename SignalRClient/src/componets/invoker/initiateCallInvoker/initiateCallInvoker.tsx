@@ -19,10 +19,12 @@ export default class InitiateVideocallInvoker extends React.Component<IProps, IS
     }
 
     onLocalStream(stream: MediaStream){
+        console.log("[KEK]: ", stream.active, " ", stream);
         (this.refs.localVideo as HTMLVideoElement).srcObject = stream;
     }
 
     onRemoteStream(stream: MediaStream){
+        console.log("[KEK]: ", stream.active, " ", stream);
         (this.refs.remoteVideo as HTMLVideoElement).srcObject = stream;
     }
 

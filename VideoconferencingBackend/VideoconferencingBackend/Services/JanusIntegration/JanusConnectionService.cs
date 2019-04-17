@@ -1,9 +1,7 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using VideoconferencingBackend.Interfaces.Adapters;
 using VideoconferencingBackend.Interfaces.Services.Janus;
 using VideoconferencingBackend.Models.Janus;

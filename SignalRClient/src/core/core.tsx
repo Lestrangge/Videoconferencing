@@ -3,13 +3,14 @@ import {config} from '../../config'
 import axios from 'axios'
 import { HubConnectionBuilder, HubConnection } from '@aspnet/signalr';
 import WebrtcStuff from "./webrtcStuff"
-import { resolve } from 'path';
+import RemoteWebrtcStuff from './remoteWebrtcStuff';
 
 export default class Core{
     private static instance: Core;
     private hubConnection: HubConnection;
     private token: string;
     private webRtcStuff: WebrtcStuff;
+    private remoteWebRtcStuff : RemoteWebrtcStuff;
 
     private constructor(token: string){
         this.hubConnection = new HubConnectionBuilder()
@@ -17,6 +18,7 @@ export default class Core{
             .configureLogging(0)
             .build();
         this.webRtcStuff = new WebrtcStuff(this.trickle)
+        this.remoteWebRtcStuff = new RemoteWebrtcStuff(this.trickle)
         this.hubConnection.on("IncomingMessage", this.onChatMessage);
         this.hubConnection.on("NewPublisher", this.onNewPublisher);
 
@@ -49,7 +51,7 @@ export default class Core{
         var that = this;
         return new Promise((resolve, reject)=> {
             that.webRtcStuff.setOnLocalStream(onLocalStream);
-            that.webRtcStuff.setOnRemoteStream(onRemoteStream);
+            that.remoteWebRtcStuff.setOnRemoteStream(onRemoteStream);
             that.webRtcStuff.generateSdp()
                 .then((jsep: any)=>{
                     console.log("Jsep: ", jsep);
@@ -72,7 +74,7 @@ export default class Core{
 
     private onNewPublisher(response: any){
         var that = Core.getInstance();
-        that.webRtcStuff.generateSdp(response.jsep)
+        that.remoteWebRtcStuff.generateSdp(response.jsep)
             .then((jsep: any)=>{
                 that.invoke("AnswerNewPublisher", {'answer': jsep, "handleId":response.handleId})
                     .then((response:any)=>{

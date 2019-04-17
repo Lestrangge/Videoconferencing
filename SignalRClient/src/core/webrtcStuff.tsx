@@ -5,10 +5,7 @@ export default class WebrtcStuff{
         this.sendTrickleCandidate = onIceCandidate;
     }
 
-    
-
-    trickle = true;
-    public generateSdp(jsep?: any) {
+    public generateSdp() {
         var that = this;
         return new Promise((resolve, reject) => {
             var media = { audio: true, video: true };
@@ -24,14 +21,11 @@ export default class WebrtcStuff{
                     video: videoSupport 
                 };
             navigator.mediaDevices.getUserMedia(gumConstraints)
-                .then(function (stream) { that.streamsDone(media, stream, jsep).then(resolve, reject); })
+                .then(function (stream) { that.streamsDone(media, stream).then(resolve, reject); })
                 .catch(function (error) { reject(error); });
         })
     }
 
-    setOnRemoteStream(remoteStream: (stream: MediaStream) => void){
-        this._remoteStream = remoteStream
-    }
     setOnLocalStream(localStream: (stream: MediaStream) => void){
         this._localStream = localStream;
     }
@@ -40,13 +34,13 @@ export default class WebrtcStuff{
     pc: RTCPeerConnection;
     stun = "stun:89.249.28.54:3478";
     iceDone = false;
+    trickle = true;
 
-    _remoteStream: (stream: MediaStream) => void;
-    remoteStream: MediaStream;
+
     _localStream: (stream: MediaStream) => void;
     myStream:any;
 
-    private streamsDone(media: any, stream: any, jsep: any) {
+    private streamsDone(media: any, stream: any) {
         return new Promise((resolve, reject) => {
             var that = this;
             if (stream) {
@@ -64,6 +58,7 @@ export default class WebrtcStuff{
             // var pc_constraints: any = {
             //     "optional": [{ "DtlsSrtpKeyAgreement": true }]
             // };
+            
             this.pc = new RTCPeerConnection(pc_config);
             console.log("Preparing local SDP and gathering candidates (trickle=" + this.trickle + ")");
             this.pc.oniceconnectionstatechange = function () {
@@ -94,25 +89,6 @@ export default class WebrtcStuff{
                     }
                 }
             };
-            that.pc.ontrack = function (event: any) {
-                console.log("Handling Remote Track");
-                console.debug(event);
-                if (!event.streams)
-                    return;
-                that.remoteStream = event.streams[0];
-                that._remoteStream(that.remoteStream);
-                if (event.track && !event.track.onended) {
-                    console.log("Adding onended callback to track:", event.track);
-                    event.track.onended = function (ev: any) {
-                        console.log("Remote track removed:", ev);
-                        if (that.remoteStream) {
-                            that.remoteStream.removeTrack(ev.target);
-                            that._remoteStream(that.remoteStream);
-                        }
-                    }
-                }
-            };
-        
             if (addTracks && stream !== null && stream !== undefined) {
                 console.log('Adding local stream');
                 stream.getTracks().forEach(function (track: any) {
@@ -120,24 +96,14 @@ export default class WebrtcStuff{
                     that.pc.addTrack(track, stream);
                 });
             }
+            
             // If there's a new local stream, let's notify the application
             if (that.myStream) {
                 this._localStream(that.myStream);
             }
             // Create offer/answer now
-            if (jsep === null || jsep === undefined) {
-                that.createOffer(media).then(resolve, reject);
-            } else {
-                console.log("Setting remote description")
-                var description1 = new RTCSessionDescription(jsep)
-                console.log("Session description generared hmmm not here")
-                that.pc.setRemoteDescription(
-                    description1,
-                    function () {
-                        console.log("Remote description accepted!");
-                        that.createAnswer(media).then(resolve, reject);
-                    }, (er: any)=> {throw er});
-            }
+            that.createOffer(media).then(resolve, reject);
+            
         })
     }
 
@@ -146,8 +112,8 @@ export default class WebrtcStuff{
         return new Promise((resolve, reject) => {
             console.log("Creating offer (iceDone=" + that.iceDone + ")");
             var mediaConstraints: any = {};
-            mediaConstraints["offerToReceiveAudio"] = true;
-            mediaConstraints["offerToReceiveVideo"] = true;
+            mediaConstraints["offerToReceiveAudio"] = false;
+            mediaConstraints["offerToReceiveVideo"] = false;
             that.pc.createOffer(
                 function (offer: any) {
                     console.debug(offer);
@@ -162,31 +128,6 @@ export default class WebrtcStuff{
                     var jsep = {
                         "type": offer.type,
                         "sdp": offer.sdp
-                    };
-                    resolve(jsep);
-                }, reject, mediaConstraints);
-        })
-    }
-
-    private createAnswer(media: any) {
-        var that = this;
-        return new Promise((resolve, reject) => {
-            console.log("Creating answer (iceDone=" + that.iceDone + ")");
-            var mediaConstraints: any = null;
-            mediaConstraints = {
-                mandatory: {
-                    OfferToReceiveAudio: true,
-                    OfferToReceiveVideo: true
-                }
-            };
-            that.pc.createAnswer(
-                function (answer: any) {
-                    console.debug(answer);
-                    console.log("Setting local description");
-                    that.pc.setLocalDescription(answer);
-                    var jsep = {
-                        "type": answer.type,
-                        "sdp": answer.sdp
                     };
                     resolve(jsep);
                 }, reject, mediaConstraints);
