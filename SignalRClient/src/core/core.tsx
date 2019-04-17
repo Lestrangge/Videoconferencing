@@ -75,8 +75,8 @@ export default class Core{
     private onNewPublisher(response: any){
         var that = Core.getInstance();
         that.remoteWebRtcStuff.generateSdp(response.jsep)
-            .then((jsep: any)=>{
-                that.invoke("AnswerNewPublisher", {'answer': jsep, "handleId":response.handleId})
+            .then((answer: any)=>{
+                that.invoke("AnswerNewPublisher", {'answer': answer, "handleId":response.handleId})
                     .then((response:any)=>{
                     })
             })
