@@ -103,7 +103,7 @@ namespace VideoconferencingBackend.Hubs
             {
                 
                 var res = await _janus.Trickle(iceCandidate);
-                return new HubSuccessResponse("ack");
+                return new HubSuccessResponse(res);
 
             }
             catch (Exception ex)

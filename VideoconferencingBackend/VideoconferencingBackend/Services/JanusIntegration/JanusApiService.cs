@@ -125,7 +125,7 @@ namespace VideoconferencingBackend.Services.JanusIntegration
                     SdpMLineIndex = candidateReceived.SdpMLineIndex,
                     SdpMid = candidateReceived.SdpMid
                 };
-            request.HandleId = (await MakeUser()).HandleId;
+            request.HandleId = candidateReceived.HandleId ?? (await MakeUser()).HandleId;
             _logger.Trace($"Janus Trickle request: {JsonConvert.SerializeObject(request)}");
 
             var res = await SendJanusRequest<AckResponse>(request, true);
