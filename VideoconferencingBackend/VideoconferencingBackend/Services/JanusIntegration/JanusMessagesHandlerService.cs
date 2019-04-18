@@ -99,18 +99,22 @@ namespace VideoconferencingBackend.Services.JanusIntegration
         {
             User user;
             User sender;
+            var login = response.Plugindata.Data.Publishers?.FirstOrDefault()?.Display;
             using (var scope = _scopeFactory.CreateScope())
             {
                 user = await scope.ServiceProvider.GetService<IUsersRepository>().GetBySessionId(response.SessionId);
                 if (user == null)
                     return;
-                sender = await scope.ServiceProvider.GetService<IUsersRepository>().GetByLogin(response.Plugindata.Data.Publishers?.FirstOrDefault()?.Display);
+                sender = await scope.ServiceProvider.GetService<IUsersRepository>().GetByLogin(login);
             }
             user.HandleId = await AttachPlugin(user);
             var connection = user.ConnectionId;
             var feed = response.Plugindata.Data.Publishers?.FirstOrDefault()?.Id;
             var offer = await JoinPublisher((long) feed, user);
-            await _hub.Clients.Client(connection).SendAsync("NewPublisher", new NewPublisherEvent((long)user.HandleId, offer,sender));
+            if(sender!=null)
+                await _hub.Clients.Client(connection).SendAsync("NewPublisher", new NewPublisherEvent((long)user.HandleId, offer,sender ));
+            else
+                await _hub.Clients.Client(connection).SendAsync("NewPublisher", new NewPublisherEvent((long)user.HandleId, offer, login));
         }
 
         private async Task UnpublishedHandler(UnpublishedResponse response)

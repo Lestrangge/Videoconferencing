@@ -56,7 +56,6 @@ namespace VideoconferencingBackend.Repositories
         public Task<User> Get(string userGuid)
         {
             return _db.Users.Where(x => x.UserGuid == userGuid)
-                .Include(user => user.GroupInCall)
                 .FirstOrDefaultAsync();
         }
 
@@ -98,7 +97,8 @@ namespace VideoconferencingBackend.Repositories
         public async Task<User> UpdateInCall(User item, Group groupInCall)
         {
             var user = await Get(item.UserGuid);
-            user.GroupInCall = groupInCall;
+            var group = _db.Groups.FirstOrDefault(group1 => group1.GroupGuid == groupInCall.GroupGuid);
+            user.GroupInCall = group;
             _db.Users.Update(user);
             await _db.SaveChangesAsync();
             return user;

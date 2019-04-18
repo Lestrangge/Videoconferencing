@@ -19,5 +19,12 @@ namespace VideoconferencingBackend.DTO.Hub.ServerEvents
             this.Answer = jsep;
             HandleId = id;
         }
+
+        public NewPublisherEvent(long id, Jsep jsep, string login)
+        {
+            this.Answer = jsep;
+            HandleId = id;
+            User = new UserFoundDto(login);
+        }
     }
 }

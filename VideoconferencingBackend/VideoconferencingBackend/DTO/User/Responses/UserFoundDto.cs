@@ -16,5 +16,10 @@
             Surname = user.Surname;
             AvatarLink = user.AvatarLink;
         }
+
+        public UserFoundDto(string login)
+        {
+            Login = login;
+        }
     }
 }

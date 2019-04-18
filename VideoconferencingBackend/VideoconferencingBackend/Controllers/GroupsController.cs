@@ -177,10 +177,11 @@ namespace VideoconferencingBackend.Controllers
             try
             {
                 var gr = await _groupsRepository.CreateWithOwner(@group, HttpContext.User.Identity.Name);
-                foreach(string user in group.Users)
-                {
-                    await _groupsRepository.AddToGroup(user, gr.GroupGuid);
-                }
+                if (group.Users != null) 
+                    foreach(var user in group.Users)
+                    {
+                        await _groupsRepository.AddToGroup(user, gr.GroupGuid);
+                    }
                 return new OkObjectResult(new GroupFoundDto(gr));
             }
             catch (ArgumentException ex)
