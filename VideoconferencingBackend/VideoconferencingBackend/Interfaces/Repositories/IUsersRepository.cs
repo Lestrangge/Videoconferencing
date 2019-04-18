@@ -7,5 +7,7 @@ namespace VideoconferencingBackend.Interfaces.Repositories
     {
         Task<User> GetByLogin(string login);
         Task<User> GetBySessionId(long? responseSessionId);
+        Task<User> GetByHandleId(long? handleId);
+        Task<User> UpdateInCall(User item, Group groupInCall);
     }
 }

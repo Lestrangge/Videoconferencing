@@ -19,6 +19,8 @@ namespace VideoconferencingBackend.Models.DBModels
         public long? HandleId { get; set; }
         public string AvatarLink { get; set; }
         public string ConnectionId { get; set; }
+        public string FcmToken { get; set; }
+        public Group GroupInCall { get; set; }
         public ICollection<GroupUser> GroupUsers { get; set; }
 
         public User()

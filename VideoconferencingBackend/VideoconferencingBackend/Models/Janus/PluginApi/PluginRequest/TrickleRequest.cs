@@ -35,7 +35,7 @@ namespace VideoconferencingBackend.Models.Janus.PluginApi.PluginRequest
         public int SdpMLineIndex { get; set; }
         public string Candidate { get; set; }
         public bool Completed { get; set; }
-        public long HandleId { get; set; }
+        public long? HandleId { get; set; }
     }
 
 

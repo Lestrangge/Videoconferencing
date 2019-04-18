@@ -14,11 +14,13 @@ namespace VideoconferencingBackend.Services
         private readonly IUsersRepository _users;
         private readonly IGroupsRepository _groups;
         private readonly IMessagesRepository _messages;
-        public ChatService(IUsersRepository users, IGroupsRepository groups, IMessagesRepository messages)
+        private readonly IPushMessagesService _pusher;
+        public ChatService(IUsersRepository users, IGroupsRepository groups, IMessagesRepository messages, IPushMessagesService pusher)
         {
             _users = users;
             _groups = groups;
             _messages = messages;
+            _pusher = pusher;
         }
 
         public async Task<Message> SendMessage(string text, string groupGuid, string userGuid, IClientProxy clients)
@@ -39,7 +41,9 @@ namespace VideoconferencingBackend.Services
             var m = await _messages.Create(message);
 
             var incoming = new GroupMessageDto(message);
-            await clients.SendAsync("IncomingMessage", incoming);
+            var users = await _groups.GetGroupUsers(groupGuid);
+            foreach (var user in users)
+                await _pusher.ChatMessage(incoming, user, group, clients);
             return message;
         }
     }

@@ -52,7 +52,7 @@
     <Content Update="nlog.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Update="videoconferencing-67a4f-firebase-adminsdk-lsu71-acb7bb85c1.json">
+    <Content Update="videoconferencing-67a4f-firebase-adminsdk-lsu71-fe7454bee6.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

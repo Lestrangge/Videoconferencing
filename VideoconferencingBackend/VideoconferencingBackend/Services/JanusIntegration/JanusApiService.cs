@@ -169,6 +169,13 @@ namespace VideoconferencingBackend.Services.JanusIntegration
             return result.Janus;
         }
 
+        public async Task<string> Unpublish()
+        {
+            var request = new UnpublishRequest();
+            var result = await SendPluginRequest<UnbublishRequestBody, UnpublishResponse>(request);
+            return result.Plugindata.Data.Unpublished;
+        }
+
         #region Senders
         private async Task<TR> SendPluginRequest<TB, TR>(PluginRequestBase<TB> message, bool release = false, User one = null)
             where TB : PluginRequestBodyBase

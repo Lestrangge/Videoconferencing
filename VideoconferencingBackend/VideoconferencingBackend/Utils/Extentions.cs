@@ -12,9 +12,13 @@ using Newtonsoft.Json.Serialization;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
+using Microsoft.AspNetCore.Builder;
 using VideoconferencingBackend.Adapters;
 using VideoconferencingBackend.Interfaces.Adapters;
 using VideoconferencingBackend.Interfaces.Services.Authentication;
+using VideoconferencingBackend.Middleware;
 using VideoconferencingBackend.Models;
 using VideoconferencingBackend.Services.AuthenticationServices;
 
@@ -91,6 +95,19 @@ namespace VideoconferencingBackend.Utils
             });
         }
 
+        public static void InitFcm(this IServiceCollection services)
+        {
+            FirebaseApp.Create(new AppOptions()
+            {
+                Credential = GoogleCredential.GetApplicationDefault(),
+            });
+        }
+
+        public static IApplicationBuilder UseFcmToken(this IApplicationBuilder app)
+        {
+            return app.UseMiddleware<FcmTokenExtractorMiddleware>();
+        }
+
         public static void AddJwtAuth(this IServiceCollection services, IConfiguration config)
         {
             services.AddScoped<ICustomAuthenticationService, TokenAuthenticationService>();
@@ -152,5 +169,7 @@ namespace VideoconferencingBackend.Utils
         {
             return collection == null || !collection.Any();
         }
+
+
     }
 }

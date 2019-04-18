@@ -73,6 +73,15 @@ namespace VideoconferencingBackend.Repositories
             return @group;
         }
 
+        public async Task<Group> UpdateInCall(Group item, bool inCall)
+        {
+            var group = await Get(item.GroupGuid);
+            group.InCall = inCall;
+            _db.Groups.Update(group);
+            await _db.SaveChangesAsync();
+            return group;
+        }
+
         ///<inheritdoc/>
         public async Task<IEnumerable<Group>> Find(string name, int? page = null, int? pageSize = null)
         {

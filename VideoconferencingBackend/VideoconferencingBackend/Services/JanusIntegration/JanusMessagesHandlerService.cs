@@ -98,28 +98,43 @@ namespace VideoconferencingBackend.Services.JanusIntegration
         private async Task NewAvailablePublisherHandler(NewAvailablePublisherResponse response)
         {
             User user;
+            User sender;
             using (var scope = _scopeFactory.CreateScope())
             {
                 user = await scope.ServiceProvider.GetService<IUsersRepository>().GetBySessionId(response.SessionId);
                 if (user == null)
                     return;
+                sender = await scope.ServiceProvider.GetService<IUsersRepository>().GetByLogin(response.Plugindata.Data.Publishers?.FirstOrDefault()?.Display);
             }
             user.HandleId = await AttachPlugin(user);
             var connection = user.ConnectionId;
             var feed = response.Plugindata.Data.Publishers?.FirstOrDefault()?.Id;
-            var offer = await JoinPublisher((long)feed, user);
-            await _hub.Clients.Client(connection).SendAsync("NewPublisher", new NewPublisherEvent((long)user.HandleId, offer,user));
+            var offer = await JoinPublisher((long) feed, user);
+            await _hub.Clients.Client(connection).SendAsync("NewPublisher", new NewPublisherEvent((long)user.HandleId, offer,sender));
         }
 
         private async Task UnpublishedHandler(UnpublishedResponse response)
         {
-            string connection;
+            User user;
             using (var scope = _scopeFactory.CreateScope())
             {
-                connection = (await scope.ServiceProvider.GetService<IUsersRepository>().GetBySessionId(response.SessionId)).ConnectionId;
+                var users =  scope.ServiceProvider.GetService<IUsersRepository>();
+                user = (await users.GetBySessionId(response.SessionId));
+                var groupInCall = user.GroupInCall;
+                if (user.HandleId == response.Plugindata.Data.Unpublished)
+                {
+                    await users.UpdateInCall(user, null);
+                    var groups =  scope.ServiceProvider.GetService<IGroupsRepository>();
+                    var group = await groups.GetGroupUsers(groupInCall.GroupGuid);
+                    if (group.All(user1 => user.GroupInCall == null))
+                    {
+                        await groups.UpdateInCall(groupInCall, false);
+                    }
+                }
+                else if (!string.IsNullOrEmpty(user.ConnectionId))
+                    await _hub.Clients.Client(user.ConnectionId).SendAsync("Unpublished", new UnpublishedEvent { HandleId = (long)response.Plugindata.Data.Unpublished });
+
             }
-            if(!string.IsNullOrEmpty(connection))
-                await _hub.Clients.Client(connection).SendAsync("Unpublished", new UnpublishedEvent{HandleId = (long)response.Plugindata.Data.Unpublished });
         }
     }
 }

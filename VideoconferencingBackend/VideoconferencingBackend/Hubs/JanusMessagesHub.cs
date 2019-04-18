@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json;
 using NLog;
+using VideoconferencingBackend.DTO.Hub.ServerEvents;
 using VideoconferencingBackend.DTO.Hub.ServerRequest;
 using VideoconferencingBackend.DTO.Hub.ServerResponse;
 using VideoconferencingBackend.DTO.Message.Response;
@@ -22,13 +23,15 @@ namespace VideoconferencingBackend.Hubs
         private readonly IGroupsRepository _groups;
         private readonly IChatService _chats;
         private readonly IUsersRepository _users;
+        private readonly IPushMessagesService _pusher;
 
-        public JanusMessagesHub(IJanusApiService janus, IGroupsRepository groups, IChatService chats, IUsersRepository users)
+        public JanusMessagesHub(IJanusApiService janus, IGroupsRepository groups, IChatService chats, IUsersRepository users, IPushMessagesService pusher)
         {
             _janus = janus;
             _groups = groups;
             _chats = chats;
             _users = users;
+            _pusher = pusher;
         }
 
         public string TestFree()
@@ -85,8 +88,11 @@ namespace VideoconferencingBackend.Hubs
             try
             {
                 var answer = await _janus.InitiateCall(initiateCallRequest.GroupGuid, initiateCallRequest.Offer);
-                await Clients.Group(initiateCallRequest.GroupGuid)
-                    .SendAsync("CallStarted", initiateCallRequest.GroupGuid);
+                var user = await _users.Get(Context.User.Identity.Name);
+                var group = await _groups.Get(initiateCallRequest.GroupGuid);
+                await _pusher.CallStarted(user,group, Clients.All);
+                await _users.UpdateInCall(user, group);
+                await _groups.UpdateInCall(group, true);
                 return new HubSuccessResponse(answer);
             }
             catch (Exception ex)
@@ -115,7 +121,6 @@ namespace VideoconferencingBackend.Hubs
         [Authorize]
         public async Task<HubResponse> AnswerNewPublisher(AnswerNewPublisherRequsetDto answerNewPublisherRequest)
         {
-
             try
             {
                 var res = await _janus.StartPeerConnection(answerNewPublisherRequest.Answer,
@@ -134,7 +139,8 @@ namespace VideoconferencingBackend.Hubs
             var userGuid = Context.User.Identity.Name;
             try
             {
-                var message = await _chats.SendMessage(text, groupGuid, userGuid, Clients.Group(groupGuid));
+
+                var message = await _chats.SendMessage(text, groupGuid, userGuid, Clients.All);
                 return new HubSuccessResponse(new GroupMessageDto(message));
             }
             catch (ArgumentException ex)

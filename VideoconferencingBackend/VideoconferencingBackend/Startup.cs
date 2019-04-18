@@ -41,6 +41,7 @@ namespace VideoconferencingBackend
             services.AddScoped<IGroupsRepository, GroupsRepository>();
             services.AddScoped<IMessagesRepository, MessagesRepository>();
             services.AddScoped<IChatService, ChatService>();
+            services.AddScoped<IPushMessagesService, FcmPushMessagesService>();
 
             services.AddSingleton<IHasherService, Sha256Hasher>();
             services.AddSingleton<IJanusApiService, JanusApiService>();
@@ -56,6 +57,7 @@ namespace VideoconferencingBackend
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);
             });
+            services.InitFcm();
             services.AddSnakeCaseSignalR(Configuration);
         }
 
@@ -68,7 +70,7 @@ namespace VideoconferencingBackend
             {
                 ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
             });
-
+            
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
@@ -77,6 +79,7 @@ namespace VideoconferencingBackend
             app.UseCors("SiteCorsPolicy");
             app.UseAuthentication();
             app.UseSignalR(routes => { routes.MapHub<JanusMessagesHub>("/signalr"); });
+            app.UseFcmToken();
             app.UseMvc();
         }
     }
