@@ -102,6 +102,8 @@ namespace VideoconferencingBackend.Migrations
 
                     b.Property<string>("FcmToken");
 
+                    b.Property<int?>("GroupInCallId");
+
                     b.Property<long?>("HandleId");
 
                     b.Property<string>("Login")
@@ -119,6 +121,8 @@ namespace VideoconferencingBackend.Migrations
                     b.Property<string>("UserGuid");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("GroupInCallId");
 
                     b.HasIndex("Login")
                         .IsUnique();
@@ -159,6 +163,13 @@ namespace VideoconferencingBackend.Migrations
                     b.HasOne("VideoconferencingBackend.Models.DBModels.User", "Sender")
                         .WithMany()
                         .HasForeignKey("SenderId");
+                });
+
+            modelBuilder.Entity("VideoconferencingBackend.Models.DBModels.User", b =>
+                {
+                    b.HasOne("VideoconferencingBackend.Models.DBModels.Group", "GroupInCall")
+                        .WithMany()
+                        .HasForeignKey("GroupInCallId");
                 });
 #pragma warning restore 612, 618
         }

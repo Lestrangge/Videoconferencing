@@ -14,5 +14,6 @@ namespace VideoconferencingBackend.Interfaces.Repositories
         Task<IEnumerable<User>> GetGroupUsers(string groupGuid, int? page = null, int? pageSize = null);
         Task<Group> GetByName(string name);
         Task<Group> UpdateInCall(Group item, bool inCall);
+        Task<Group> RemoveFromGroup(string userGuid, string groupGuid);
     }   
 }

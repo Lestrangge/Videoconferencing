@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using VideoconferencingBackend.DTO.User.Requests;
 
@@ -20,6 +21,8 @@ namespace VideoconferencingBackend.Models.DBModels
         public string AvatarLink { get; set; }
         public string ConnectionId { get; set; }
         public string FcmToken { get; set; }
+        public int? GroupInCallId { get; set; }
+        [ForeignKey("GroupInCallId")]
         public Group GroupInCall { get; set; }
         public ICollection<GroupUser> GroupUsers { get; set; }
 

@@ -1,8 +1,8 @@
 ﻿using FirebaseAdmin.Messaging;
+using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.SignalR;
 using VideoconferencingBackend.DTO.Hub.ServerEvents;
 using VideoconferencingBackend.DTO.Message.Response;
 using VideoconferencingBackend.Interfaces.Services;
@@ -27,12 +27,12 @@ namespace VideoconferencingBackend.Services
                 Token = user.FcmToken,
                 Data = new Dictionary<string, string>()
                 {
-                    { "message", serializedMessage }
+                    { "type", "IncomingMessage"}, 
+                    { "data", serializedMessage }
                 },
-                Notification = new Notification()
+                Android = new AndroidConfig()
                 {
-                    Title = group.Name,
-                    Body = payload.Text
+                    
                 }
             };
             var response = await FirebaseMessaging.DefaultInstance.SendAsync(message);
@@ -51,12 +51,8 @@ namespace VideoconferencingBackend.Services
                 Token = user.FcmToken,
                 Data = new Dictionary<string, string>()
                 {
-                    { "message", serializedMessage}
-                },
-                Notification = new Notification()
-                {
-                    Title = group.Name,
-                    Body = user.Login
+                    { "type", "CallStarted"},
+                    { "data", serializedMessage }
                 }
             };
             var response = await FirebaseMessaging.DefaultInstance.SendAsync(message);

@@ -65,6 +65,7 @@ export default class Core{
     }
 
     private trickle(candidate: any){
+        candidate.handleId = Core.getInstance().remoteHandleID;
         Core.getInstance().invoke("Trickle", candidate)
     }
 
@@ -72,10 +73,12 @@ export default class Core{
         console.warn("IncomingMessage: ", message)
     }
 
+    private remoteHandleID: any;
     private onNewPublisher(response: any){
         var that = Core.getInstance();
         that.remoteWebRtcStuff.generateSdp(response.answer)
             .then((answer: any)=>{
+                that.remoteHandleID = response.handleId
                 that.invoke("AnswerNewPublisher", {'answer': answer, "handleId":response.handleId})
                     .then((response:any)=>{
                     })

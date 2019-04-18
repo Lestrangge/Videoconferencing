@@ -10,8 +10,8 @@ using VideoconferencingBackend.Models;
 namespace VideoconferencingBackend.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20190409195753_GuidsAdded")]
-    partial class GuidsAdded
+    [Migration("20190418183727_initial")]
+    partial class initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -93,18 +93,6 @@ namespace VideoconferencingBackend.Migrations
                     b.ToTable("Messages");
                 });
 
-            modelBuilder.Entity("VideoconferencingBackend.Models.DBModels.Role", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<string>("Name");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Roles");
-                });
-
             modelBuilder.Entity("VideoconferencingBackend.Models.DBModels.User", b =>
                 {
                     b.Property<int>("Id")
@@ -113,6 +101,10 @@ namespace VideoconferencingBackend.Migrations
                     b.Property<string>("AvatarLink");
 
                     b.Property<string>("ConnectionId");
+
+                    b.Property<string>("FcmToken");
+
+                    b.Property<int?>("GroupInCallId");
 
                     b.Property<long?>("HandleId");
 
@@ -124,8 +116,6 @@ namespace VideoconferencingBackend.Migrations
 
                     b.Property<string>("Password");
 
-                    b.Property<int?>("RoleId");
-
                     b.Property<long?>("SessionId");
 
                     b.Property<string>("Surname");
@@ -134,10 +124,10 @@ namespace VideoconferencingBackend.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("GroupInCallId");
+
                     b.HasIndex("Login")
                         .IsUnique();
-
-                    b.HasIndex("RoleId");
 
                     b.HasIndex("UserGuid")
                         .IsUnique();
@@ -179,9 +169,9 @@ namespace VideoconferencingBackend.Migrations
 
             modelBuilder.Entity("VideoconferencingBackend.Models.DBModels.User", b =>
                 {
-                    b.HasOne("VideoconferencingBackend.Models.DBModels.Role", "Role")
+                    b.HasOne("VideoconferencingBackend.Models.DBModels.Group", "GroupInCall")
                         .WithMany()
-                        .HasForeignKey("RoleId");
+                        .HasForeignKey("GroupInCallId");
                 });
 #pragma warning restore 612, 618
         }

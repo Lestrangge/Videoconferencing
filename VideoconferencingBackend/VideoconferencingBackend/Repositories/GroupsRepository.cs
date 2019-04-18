@@ -112,7 +112,24 @@ namespace VideoconferencingBackend.Repositories
             await _db.SaveChangesAsync();
             return group;
         }
-        
+
+        public async Task<Group> RemoveFromGroup(string userGuid, string groupGuid)
+        {
+            var user = await _db.Users.Where(item => item.UserGuid == userGuid).FirstOrDefaultAsync();
+            var group = await _db.Groups.Where(item => item.GroupGuid == groupGuid).FirstOrDefaultAsync();
+            if (user == null)
+                throw new ArgumentException("User not found");
+            if (group == null)
+                throw new ArgumentException("Group not found");
+            var conn = await _db.GroupUsers
+                .Where(groupUser => groupUser.Group.GroupGuid == groupGuid && groupUser.User.UserGuid == userGuid)
+                .FirstOrDefaultAsync();
+            if(conn == null)
+                throw new ArgumentException("User is not in a group");
+            _db.GroupUsers.Remove(conn);
+            await _db.SaveChangesAsync();
+            return group;
+        }
         public async Task<Group> CreateWithOwner(Group item, string userGuid)
         {
             item.Creator = await _db.Users.Where(user => user.UserGuid == userGuid).FirstOrDefaultAsync() 

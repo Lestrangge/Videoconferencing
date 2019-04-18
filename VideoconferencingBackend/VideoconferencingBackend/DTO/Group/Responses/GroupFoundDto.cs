@@ -7,6 +7,7 @@
         public string AvatarLink;
         public string GroupGuid;
         public bool InCall; 
+        public GroupFoundDto() { }
         public GroupFoundDto(Models.DBModels.Group group)
         {
             Name = group.Name;

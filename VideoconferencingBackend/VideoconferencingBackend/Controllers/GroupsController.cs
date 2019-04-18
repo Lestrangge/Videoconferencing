@@ -17,11 +17,13 @@ namespace VideoconferencingBackend.Controllers
     public class GroupsController : Controller
     {
         private readonly IGroupsRepository _groupsRepository;
+        private readonly IMessagesRepository _messagesRepository;
         private readonly int _pageSize;
 
-        public GroupsController(IGroupsRepository groupsRepository, IConfiguration config)
+        public GroupsController(IGroupsRepository groupsRepository, IConfiguration config, IMessagesRepository messagesRepository)
         {
             _groupsRepository = groupsRepository;
+            _messagesRepository = messagesRepository;
             _pageSize = int.Parse(config["GroupsFindPageSize"]);
         }
 
@@ -59,7 +61,12 @@ namespace VideoconferencingBackend.Controllers
         {
             var me = HttpContext.User.Identity.Name;
             return new OkObjectResult(new {Groups = (await _groupsRepository.GetCreatedGroups(me, page, pageSize))
-                .Select(group => new GroupFoundDto(group))});
+                .Select(async group =>
+                {
+                    var lastMessage = (await _messagesRepository.GetMessagesFromGroup(group.GroupGuid, 0, 1)).FirstOrDefault();
+                    return new GroupFoundWithMessageDto(group, lastMessage);
+                })
+            });
         }
 
         /// <summary>
@@ -124,7 +131,12 @@ namespace VideoconferencingBackend.Controllers
         {
             var me = HttpContext.User.Identity.Name;
             return new OkObjectResult(new {Groups = (await _groupsRepository.GetUsersGroups(me, page, pageSize))
-                .Select(group => new GroupFoundDto(group))});
+                .Select(async group =>
+                {
+                    var lastMessage = (await _messagesRepository.GetMessagesFromGroup(group.GroupGuid, 0, 1)).FirstOrDefault();
+                    return new GroupFoundWithMessageDto(group, lastMessage);
+                })
+            });
         }
 
         /// <summary>
@@ -170,6 +182,22 @@ namespace VideoconferencingBackend.Controllers
                     await _groupsRepository.AddToGroup(user, gr.GroupGuid);
                 }
                 return new OkObjectResult(new GroupFoundDto(gr));
+            }
+            catch (ArgumentException ex)
+            {
+                return new BadRequestObjectResult(ex.Message);
+            }
+        }
+
+        [HttpPost]
+        [Authorize]
+        [Route("leave")]
+        public async Task<IActionResult> LeaveGroup(string groupGuid)
+        {
+            try
+            {
+                var deleted = await _groupsRepository.RemoveFromGroup(HttpContext.User.Identity.Name, groupGuid);
+                return new OkObjectResult(new GroupFoundDto(deleted));
             }
             catch (ArgumentException ex)
             {
