@@ -11,7 +11,7 @@ export default class InitiateVideocallInvoker extends React.Component<IProps, IS
     constructor(props: IProps){
         super(props);
         this.state = { 
-            groupGuid: "0192ac38-a658-4e45-ae0a-9ba9c413b3c8"
+            groupGuid: "a11c9916-e55f-46e8-83c7-f39298eea924"
         }
         this.onLocalStream = this.onLocalStream.bind(this);
         this.onRemoteStream = this.onRemoteStream.bind(this);
