@@ -46,28 +46,7 @@ namespace VideoconferencingBackend.Controllers
                 .Select(group => new GroupFoundDto(group))});
         }
 
-        /// <summary>
-        /// Enumerable of groups, created by user
-        /// </summary>
-        /// <param name="page">optional: page number (base 0)</param>
-        /// <param name="pageSize">optional: page size (base 10)</param>
-        /// <returns>Enumerable of groups, created by user</returns>
-        /// <response code="200">Enumerable of matching groups</response>
-        /// <response code="401">Unauthorized</response>
-        [HttpGet]
-        [Authorize]
-        [Route("created")]
-        public async Task<IActionResult> GetCreatedGroups(int? page, int? pageSize)
-        {
-            var me = HttpContext.User.Identity.Name;
-            return new OkObjectResult(new {Groups = (await _groupsRepository.GetCreatedGroups(me, page, pageSize))
-                .Select(async group =>
-                {
-                    var lastMessage = (await _messagesRepository.GetMessagesFromGroup(group.GroupGuid, 0, 1)).FirstOrDefault();
-                    return new GroupFoundWithMessageDto(group, lastMessage);
-                })
-            });
-        }
+
 
         /// <summary>
         /// Join the group, specified by group name
@@ -130,13 +109,41 @@ namespace VideoconferencingBackend.Controllers
         public async Task<IActionResult> GetJoinedGroups(int? page, int? pageSize)
         {
             var me = HttpContext.User.Identity.Name;
-            return new OkObjectResult(new {Groups = (await _groupsRepository.GetUsersGroups(me, page, pageSize))
-                .Select(async group =>
-                {
-                    var lastMessage = (await _messagesRepository.GetMessagesFromGroup(group.GroupGuid, 0, 1)).FirstOrDefault();
-                    return new GroupFoundWithMessageDto(group, lastMessage);
-                })
+            var groups = await _groupsRepository.GetUsersGroups(me, page, pageSize);
+            var output = groups.Select( group =>
+            {
+#pragma warning disable AsyncFixer02 // Long running or blocking operations under an async method
+                var lastMessage = _messagesRepository.GetMessagesFromGroup(group.GroupGuid, 0, 1).Result.FirstOrDefault();
+#pragma warning restore AsyncFixer02 // Long running or blocking operations under an async method
+                return new GroupFoundWithMessageDto(group, lastMessage);
             });
+            var response = new { Groups = output };
+            return new OkObjectResult(response);
+        }
+
+        /// <summary>
+        /// Enumerable of groups, created by user
+        /// </summary>
+        /// <param name="page">optional: page number (base 0)</param>
+        /// <param name="pageSize">optional: page size (base 10)</param>
+        /// <returns>Enumerable of groups, created by user</returns>
+        /// <response code="200">Enumerable of matching groups</response>
+        /// <response code="401">Unauthorized</response>
+        [HttpGet]
+        [Authorize]
+        [Route("created")]
+        public async Task<IActionResult> GetCreatedGroups(int? page, int? pageSize)
+        {
+            var me = HttpContext.User.Identity.Name;
+            var groups = await _groupsRepository.GetCreatedGroups(me, page, pageSize);
+            var response = groups.Select(group =>
+            {
+#pragma warning disable AsyncFixer02 // Long running or blocking operations under an async method
+                var lastMessage = _messagesRepository.GetMessagesFromGroup(group.GroupGuid, 0, 1).Result.FirstOrDefault();
+#pragma warning restore AsyncFixer02 // Long running or blocking operations under an async method
+                return new GroupFoundWithMessageDto(group, lastMessage);
+            });
+            return new OkObjectResult(new { Groups = response });
         }
 
         /// <summary>
@@ -152,9 +159,10 @@ namespace VideoconferencingBackend.Controllers
         [Authorize]
         [Route("participants")]
         public async Task<IActionResult> GetGroupParticipants(string groupGuid, int? page, int? pageSize)
-        {   
+        {
+            var creator = await _groupsRepository.Get(groupGuid);
             return new OkObjectResult(new {Users = (await _groupsRepository.GetGroupUsers(groupGuid, page, pageSize))
-                .Select(user => new UserFoundDto(user))});
+                .Select(user => new UserFoundDto(user)), CreatorGuid = creator.Creator.UserGuid});
         }
 
         /// <summary>

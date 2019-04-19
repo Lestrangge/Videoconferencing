@@ -10,10 +10,9 @@ namespace VideoconferencingBackend.Interfaces.Services.Janus
         Task<string> Trickle(TrickleCandidateReceivedDto candidateReceived);
         Task<Jsep> InitiateCall(string groupGuid,Jsep jsep);
         Task<long?> AttachPlugin(User one = null);  
-
         Task<Jsep> JoinPublisher(long feed, User one);
         Task<string> StartPeerConnection(Jsep answer, long handleId);
         Task<string> Destroy();
-
+        Task UpdateInCall(string userGuid);
     }
 }

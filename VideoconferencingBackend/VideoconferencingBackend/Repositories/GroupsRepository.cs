@@ -159,6 +159,7 @@ namespace VideoconferencingBackend.Repositories
             var group = await _db.Groups.Where(group1 => group1.GroupGuid == groupGuid).FirstOrDefaultAsync();
             return await _db.GroupUsers.Where(groupUser => groupUser.Group == group)
                 .Include(groupUser => groupUser.User)
+                   .ThenInclude(user => user.GroupInCall)
                 .Select(groupUser => groupUser.User)
                 .Paginate(page, pageSize)
                 .ToListAsync();

@@ -17,5 +17,9 @@ namespace VideoconferencingBackend.DTO.Message.Response
             User = new UserFoundDto(message.Sender);
             Time = message.Time.ToString("yyyy-MM-ddTHH:mm:ssZ");
         }
+
+        public GroupMessageDto()
+        {
+        }
     }
 }

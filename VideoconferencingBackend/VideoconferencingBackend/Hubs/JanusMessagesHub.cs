@@ -63,6 +63,7 @@ namespace VideoconferencingBackend.Hubs
             try
             {
                 await _janus.Destroy();
+                await _janus.UpdateInCall(me);
                 user.ConnectionId = null;
             }
             catch (Exception ex)
