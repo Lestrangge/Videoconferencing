@@ -127,17 +127,30 @@ namespace VideoconferencingBackend.Services.JanusIntegration
                 var groupInCall = user.GroupInCall;
                 if (user.HandleId == response.Plugindata.Data.Unpublished)
                 {
-                    await users.UpdateInCall(user, null);
-                    var groups =  scope.ServiceProvider.GetService<IGroupsRepository>();
-                    var group = await groups.GetGroupUsers(groupInCall.GroupGuid);
-                    if (group.All(user1 => user.GroupInCall == null))
-                    {
-                        await groups.UpdateInCall(groupInCall, false);
-                    }
+                    await UpdateInCall(user.UserGuid);
                 }
                 else if (!string.IsNullOrEmpty(user.ConnectionId))
                     await _hub.Clients.Client(user.ConnectionId).SendAsync("Unpublished", new UnpublishedEvent { HandleId = (long)response.Plugindata.Data.Unpublished });
 
+            }
+        }
+
+        public async Task UpdateInCall(string userGuid)
+        {
+            User user;
+            using (var scope = _scopeFactory.CreateScope())
+            {
+                var users = scope.ServiceProvider.GetService<IUsersRepository>();
+                var groups = scope.ServiceProvider.GetService<IGroupsRepository>();
+
+                user = (await users.Get(userGuid));
+                var groupInCall = user.GroupInCall;
+                await users.UpdateInCall(user, null);
+                var group = await groups.GetGroupUsers(groupInCall.GroupGuid);
+                if (group.All(user1 => user.GroupInCallId == null))
+                {
+                    await groups.UpdateInCall(groupInCall, false);
+                }
             }
         }
     }
