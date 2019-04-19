@@ -63,14 +63,14 @@ namespace VideoconferencingBackend.Hubs
             try
             {
                 await _janus.Destroy();
-                await _janus.UpdateInCall(me);
                 user.ConnectionId = null;
+                await _users.Update(user);
+                await _janus.UpdateInCall(me);
             }
             catch (Exception ex)
             {
 
             }
-            await _users.Update(user);
             foreach (var @group in groups)
                 await Groups.RemoveFromGroupAsync(Context.ConnectionId, @group.GroupGuid);
             await base.OnDisconnectedAsync(exception);

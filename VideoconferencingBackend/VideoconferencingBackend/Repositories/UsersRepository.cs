@@ -98,12 +98,17 @@ namespace VideoconferencingBackend.Repositories
         public async Task<User> UpdateInCall(User item, Group groupInCall)
         {
             var user = _db.Users.Where(user1 => user1.UserGuid == item.UserGuid).Include(user1 => user1.GroupInCall).FirstOrDefault();
-            if(groupInCall!=null)
-                user.GroupInCall = _db.Groups.FirstOrDefault(group1 => group1.GroupGuid == groupInCall.GroupGuid) ;
+            if (groupInCall != null)
+            {
+                user.GroupInCall = _db.Groups.FirstOrDefault(group1 => group1.GroupGuid == groupInCall.GroupGuid);
+
+            }
             else
             {
-                _db.Entry(user).Property("GroupInCallId").CurrentValue = null;
-                _db.Entry(user).Property("GroupInCallId").IsModified = true;
+                //var script = $"UPDATE public.\"Users\" SET  \"GroupInCallId\" = NULL WHERE \"UserGuid\" = '{user.UserGuid}'; ";
+                //await _db.Database.ExecuteSqlCommandAsync(script);
+                user.GroupInCall = null;
+                user.GroupInCallId = null;
             }
             _db.Users.Update(user);
             await _db.SaveChangesAsync();
